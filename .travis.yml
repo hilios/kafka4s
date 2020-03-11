@@ -2,11 +2,15 @@ language: scala
 scala:
 #  - 2.13.1
   - 2.12.10
-  - 2.11.12
+#  - 2.11.12
 services:
   - docker
 before_script:
-  - docker-compose up
+  - docker-compose up -d
 script:
   - sbt ++$TRAVIS_SCALA_VERSION test
   - sbt ++$TRAVIS_SCALA_VERSION it:test
+after_failure:
+  - docker-compose logs
+after_script:
+  - docker-compose rm -f
