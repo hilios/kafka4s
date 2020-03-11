@@ -24,16 +24,14 @@ val Dependencies = new {
 }
 
 lazy val kafka4s = project.in(file("."))
+  .enablePlugins(MicrositesPlugin)
+  .aggregate(core, effect)
   .settings(
     // Root project
     name := "kafka4s",
     skip in publish := true,
     description := "A minimal Scala-idiomatic library for Kafka",
   )
-  .aggregate(core, effect, docs)
-
-lazy val docs = project.in(file("."))
-  .enablePlugins(MicrositesPlugin)
   .settings(
     micrositeName := "Kafka4s",
     micrositeDescription := "",
