@@ -1,12 +1,11 @@
-package io.kafka4s.dsl
+package io.kafka4s.consumer
 
 import cats.Id
 import cats.data.NonEmptyList
 import io.kafka4s.common.{Header, Headers}
-import io.kafka4s.consumer.ConsumerRecord
 import io.kafka4s.test.UnitSpec
 
-class DslSpec extends UnitSpec {
+class ConsumerSyntaxSpec extends UnitSpec {
 
   val header = Header.of[Id]("foo" -> "bar")
 

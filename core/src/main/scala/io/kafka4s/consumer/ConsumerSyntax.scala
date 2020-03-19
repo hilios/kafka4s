@@ -1,11 +1,10 @@
-package io.kafka4s.dsl
+package io.kafka4s.consumer
 
 import cats.data.NonEmptyList
 import io.kafka4s.common.{Header, Record}
-import io.kafka4s.consumer.{ConsumerImplicits, ConsumerRecord}
 import io.kafka4s.serdes.Deserializer
 
-private[kafka4s] trait DslConsumer extends ConsumerImplicits {
+private[kafka4s] trait ConsumerSyntax extends ConsumerImplicits {
 
   /**
     * Combine different matchers
