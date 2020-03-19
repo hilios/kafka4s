@@ -32,15 +32,15 @@ class BatchKafkaConsumer[F[_]](config: KafkaConsumerConfiguration,
         new TopicPartition(record.topic, record.partition) -> new OffsetAndMetadata(record.offset + 1L)
       })
       _ <- consumer.commit(offsets.toMap)
-      _ <- logger.debug(s"Offset committed for records [${records.mkString_(", ")}]")
+      _ <- logger.debug(s"Offset committed for records [${records.mkString_(",")}]")
     } yield ()
 
   private def consumeBatch(records: NonEmptyList[DefaultConsumerRecord]): F[BatchReturn[F]] =
     for {
       r <- batchConsumer.apply(records.map(ConsumerRecord[F]))
       _ <- r match {
-        case BatchReturn.Ack(r)     => logger.debug(s"Records [${r.show}] processed successfully")
-        case BatchReturn.Err(r, ex) => logger.error(s"Error processing [${r.show}]", ex)
+        case BatchReturn.Ack(r)     => logger.debug(s"Records [${r.mkString_(",")}] processed successfully")
+        case BatchReturn.Err(r, ex) => logger.error(s"Error processing [${r.mkString_(",")}]", ex)
       }
     } yield r
 
