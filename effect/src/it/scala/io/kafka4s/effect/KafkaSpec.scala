@@ -107,7 +107,7 @@ class KafkaSpec extends AnyFlatSpec with Matchers { self =>
         .withTopics(topics.toSet)
         .withConsumer(BatchConsumer.of[IO] {
           case BatchTopic("boom") => IO.raiseError(new Exception("Somebody set up us the bomb"))
-          case batch              => records.update(_ :+ batch.toList)
+          case batch              => records.update(_ ++ batch.toList)
         })
         .resource
 

@@ -4,7 +4,7 @@ import java.util.Properties
 
 import cats.ApplicativeError
 import cats.effect.{ConcurrentEffect, ContextShift, Resource, Sync, Timer}
-import io.kafka4s.consumer.{BatchConsumer, BatchRecordConsumer, Subscription}
+import io.kafka4s.consumer._
 import io.kafka4s.effect.config
 
 import scala.concurrent.duration._
@@ -41,7 +41,7 @@ case class BatchKafkaConsumerBuilder[F[_]](pollTimeout: FiniteDuration,
   def withConsumer(consumer: BatchRecordConsumer[F]): Self =
     copy(recordConsumer = consumer)
 
-  def resource(implicit F: ConcurrentEffect[F], T: Timer[F], CS: ContextShift[F]): Resource[F, KafkaConsumer[F]] =
+  def resource(implicit F: ConcurrentEffect[F], T: Timer[F], CS: ContextShift[F]): Resource[F, BatchKafkaConsumer[F]] =
     BatchKafkaConsumer.resource[F](builder = this)
 
   def serve(implicit F: ConcurrentEffect[F], T: Timer[F], CS: ContextShift[F]): F[Unit] = resource.use(_ => F.never)

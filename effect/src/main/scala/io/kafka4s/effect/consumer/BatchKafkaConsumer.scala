@@ -4,8 +4,8 @@ import java.util.concurrent.Executors
 
 import cats.data.NonEmptyList
 import cats.effect.concurrent.Ref
-import cats.implicits._
 import cats.effect.{Blocker, CancelToken, Concurrent, ConcurrentEffect, ContextShift, Resource, Timer}
+import cats.implicits._
 import io.kafka4s.BatchRecordConsumer
 import io.kafka4s.consumer.{BatchReturn, ConsumerRecord, DefaultConsumerRecord, Subscription}
 import io.kafka4s.effect.log.Logger
@@ -106,7 +106,7 @@ object BatchKafkaConsumer {
 
   def resource[F[_]](builder: BatchKafkaConsumerBuilder[F])(implicit F: ConcurrentEffect[F],
                                                             T: Timer[F],
-                                                            CS: ContextShift[F]): Resource[F, KafkaConsumer[F]] =
+                                                            CS: ContextShift[F]): Resource[F, BatchKafkaConsumer[F]] =
     for {
       config <- Resource.liftF(F.fromEither {
         if (builder.properties.isEmpty) KafkaConsumerConfiguration.load
@@ -126,12 +126,12 @@ object BatchKafkaConsumer {
       blocker = Blocker.liftExecutorService(es)
       consumer <- Resource.make(ConsumerEffect[F](properties, blocker))(c => c.wakeup >> c.close())
       logger   <- Resource.liftF(Slf4jLogger[F].of[BatchKafkaConsumer[Any]])
-      c = new KafkaConsumer[F](config,
-                               consumer,
-                               logger,
-                               builder.pollTimeout,
-                               builder.subscription,
-                               builder.recordConsumer)
+      c = new BatchKafkaConsumer[F](config,
+                                    consumer,
+                                    logger,
+                                    builder.pollTimeout,
+                                    builder.subscription,
+                                    builder.recordConsumer)
       _ <- c.resource
     } yield c
 }
