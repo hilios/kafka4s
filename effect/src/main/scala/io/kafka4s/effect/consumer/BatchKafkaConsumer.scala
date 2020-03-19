@@ -3,11 +3,11 @@ package io.kafka4s.effect.consumer
 import java.util.concurrent.Executors
 
 import cats.data.NonEmptyList
-import cats.effect._
 import cats.effect.concurrent.Ref
 import cats.implicits._
-import io.kafka4s.RecordConsumer
-import io.kafka4s.consumer.{ConsumerRecord, DefaultConsumerRecord, Return, Subscription}
+import cats.effect.{Blocker, CancelToken, Concurrent, ConcurrentEffect, ContextShift, Resource, Timer}
+import io.kafka4s.BatchRecordConsumer
+import io.kafka4s.consumer.{BatchReturn, ConsumerRecord, DefaultConsumerRecord, Subscription}
 import io.kafka4s.effect.log.Logger
 import io.kafka4s.effect.log.impl.Slf4jLogger
 import org.apache.kafka.clients.consumer.{ConsumerConfig, OffsetAndMetadata}
@@ -15,12 +15,12 @@ import org.apache.kafka.common.{KafkaException, TopicPartition}
 
 import scala.concurrent.duration.FiniteDuration
 
-class KafkaConsumer[F[_]](config: KafkaConsumerConfiguration,
-                          consumer: ConsumerEffect[F],
-                          logger: Logger[F],
-                          pollTimeout: FiniteDuration,
-                          subscription: Subscription,
-                          recordConsumer: RecordConsumer[F])(implicit F: Concurrent[F], T: Timer[F]) {
+class BatchKafkaConsumer[F[_]](config: KafkaConsumerConfiguration,
+                               consumer: ConsumerEffect[F],
+                               logger: Logger[F],
+                               pollTimeout: FiniteDuration,
+                               subscription: Subscription,
+                               batchConsumer: BatchRecordConsumer[F])(implicit F: Concurrent[F], T: Timer[F]) {
 
   // TODO: Parametrize the retry policy
   val retryPolicy: retry.RetryPolicy[F] =
@@ -35,19 +35,20 @@ class KafkaConsumer[F[_]](config: KafkaConsumerConfiguration,
       _ <- logger.debug(s"Offset committed for records [${records.mkString_(", ")}]")
     } yield ()
 
-  private def consume1(record: DefaultConsumerRecord): F[Return[F]] =
+  private def consumeBatch(records: NonEmptyList[DefaultConsumerRecord]): F[BatchReturn[F]] =
     for {
-      r <- recordConsumer.apply(ConsumerRecord[F](record))
+      r <- batchConsumer.apply(records.map(ConsumerRecord[F]))
       _ <- r match {
-        case Return.Ack(r)     => logger.debug(s"Record [${r.show}] processed successfully")
-        case Return.Err(r, ex) => logger.error(s"Error processing [${r.show}]", ex)
+        case BatchReturn.Ack(r)     => logger.debug(s"Records [${r.show}] processed successfully")
+        case BatchReturn.Err(r, ex) => logger.error(s"Error processing [${r.show}]", ex)
       }
     } yield r
 
   private def consume(records: NonEmptyList[DefaultConsumerRecord]): F[Unit] =
     for {
-      r <- records.traverse(consume1)
-      _ <- r.filter(_.isInstanceOf[Return.Ack[F]]).map(_.record) match {
+      b <- F.pure(records.groupBy(_.topic()))
+      r <- b.mapValues(consumeBatch).values.toList.sequence
+      _ <- r.filter(_.isInstanceOf[BatchReturn.Ack[F]]).flatMap(_.records.toList) match {
         case Nil => F.unit
         case a   => F.delay(NonEmptyList.fromListUnsafe(a)) >>= commit
       }
@@ -89,23 +90,23 @@ class KafkaConsumer[F[_]](config: KafkaConsumerConfiguration,
     for {
       exitSignal <- Ref.of[F, Boolean](false)
       _ <- logger.info(
-        s"KafkaConsumer connecting to [${config.bootstrapServers.mkString(",")}] with group id [${config.groupId}]")
+        s"BatchKafkaConsumer connecting to [${config.bootstrapServers.mkString(",")}] with group id [${config.groupId}]")
       _     <- subscribe
       fiber <- F.start(fetch(exitSignal))
     } yield exitSignal.set(true) >> fiber.join
 
   def close: F[Unit] =
-    logger.info("Stopping KafkaConsumer...")
+    logger.info("Stopping BatchKafkaConsumer...")
 
   def resource: Resource[F, Unit] =
     Resource.make(start)(close >> _).void
 }
 
-object KafkaConsumer {
+object BatchKafkaConsumer {
 
-  def resource[F[_]](builder: KafkaConsumerBuilder[F])(implicit F: ConcurrentEffect[F],
-                                                       T: Timer[F],
-                                                       CS: ContextShift[F]): Resource[F, KafkaConsumer[F]] =
+  def resource[F[_]](builder: BatchKafkaConsumerBuilder[F])(implicit F: ConcurrentEffect[F],
+                                                            T: Timer[F],
+                                                            CS: ContextShift[F]): Resource[F, KafkaConsumer[F]] =
     for {
       config <- Resource.liftF(F.fromEither {
         if (builder.properties.isEmpty) KafkaConsumerConfiguration.load
@@ -124,7 +125,7 @@ object KafkaConsumer {
       es <- Resource.make(F.delay(Executors.newCachedThreadPool()))(e => F.delay(e.shutdown()))
       blocker = Blocker.liftExecutorService(es)
       consumer <- Resource.make(ConsumerEffect[F](properties, blocker))(c => c.wakeup >> c.close())
-      logger   <- Resource.liftF(Slf4jLogger[F].of[KafkaConsumer[Any]])
+      logger   <- Resource.liftF(Slf4jLogger[F].of[BatchKafkaConsumer[Any]])
       c = new KafkaConsumer[F](config,
                                consumer,
                                logger,

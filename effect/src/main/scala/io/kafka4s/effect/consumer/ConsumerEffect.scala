@@ -3,6 +3,7 @@ package io.kafka4s.effect.consumer
 import java.time.{Duration => JDuration}
 import java.util.Properties
 
+import cats.Applicative
 import cats.effect._
 import cats.implicits._
 import io.kafka4s.consumer.{ConsumerRebalance, DefaultConsumer, DefaultConsumerRecord}
@@ -18,22 +19,22 @@ import scala.collection.JavaConverters._
 import scala.concurrent.duration._
 import scala.util.matching.Regex
 
-class ConsumerEffect[F[_]] private (consumer: DefaultConsumer, blocker: Blocker, threadSafe: ThreadSafeBlocker[F])(
-  implicit F: Sync[F],
-  CS: ContextShift[F]) {
+class ConsumerEffect[F[_]] private (consumer: DefaultConsumer,
+                                    blocker: Blocker,
+                                    threadSafe: ThreadSafeBlocker[F],
+                                    cb: ConsumerRebalance => F[Unit])(implicit F: Effect[F], CS: ContextShift[F]) {
 
   // TODO: Allow rebalance callbacks
-  implicit def rebalanceListener(cb: ConsumerRebalance => F[Unit]): ConsumerRebalanceListener =
-    new ConsumerRebalanceListener() {
+  val consumerRebalanceListener = new ConsumerRebalanceListener() {
 
-      def onPartitionsRevoked(partitions: java.util.Collection[TopicPartition]): Unit = {
-        cb(ConsumerRebalance.PartitionsRevoked(partitions.asScala.toSeq))
-      }
-
-      def onPartitionsAssigned(partitions: java.util.Collection[TopicPartition]): Unit = {
-        cb(ConsumerRebalance.PartitionsAssigned(partitions.asScala.toSeq))
-      }
+    def onPartitionsRevoked(partitions: java.util.Collection[TopicPartition]): Unit = {
+      F.toIO(cb(ConsumerRebalance.PartitionsRevoked(partitions.asScala.toSeq))).unsafeRunSync()
     }
+
+    def onPartitionsAssigned(partitions: java.util.Collection[TopicPartition]): Unit = {
+      F.toIO(cb(ConsumerRebalance.PartitionsAssigned(partitions.asScala.toSeq))).unsafeRunSync()
+    }
+  }
 
   def metrics: F[Map[MetricName, Metric]] = F.delay(consumer.metrics().asScala.toMap)
 
@@ -103,10 +104,12 @@ class ConsumerEffect[F[_]] private (consumer: DefaultConsumer, blocker: Blocker,
 
 object ConsumerEffect {
 
-  def apply[F[_]](properties: Properties, blocker: Blocker)(implicit F: Concurrent[F],
+  def noop[F[_]: Applicative]: ConsumerRebalance => F[Unit] = _ => Applicative[F].unit
+
+  def apply[F[_]](properties: Properties, blocker: Blocker)(implicit F: ConcurrentEffect[F],
                                                             CS: ContextShift[F]): F[ConsumerEffect[F]] =
     for {
       consumer   <- F.delay(new ApacheKafkaConsumer[Array[Byte], Array[Byte]](properties))
       threadSafe <- ThreadSafeBlocker[F](blocker)
-    } yield new ConsumerEffect(consumer, blocker, threadSafe)
+    } yield new ConsumerEffect(consumer, blocker, threadSafe, noop[F])
 }

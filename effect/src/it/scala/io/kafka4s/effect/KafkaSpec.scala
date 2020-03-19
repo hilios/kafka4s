@@ -7,7 +7,7 @@ import io.kafka4s._
 import io.kafka4s.dsl._
 import io.kafka4s.consumer._
 import io.kafka4s.effect.admin.KafkaAdminBuilder
-import io.kafka4s.effect.consumer.KafkaConsumerBuilder
+import io.kafka4s.effect.consumer.{BatchKafkaConsumerBuilder, KafkaConsumerBuilder}
 import io.kafka4s.effect.producer.KafkaProducerBuilder
 import org.apache.kafka.clients.admin.NewTopic
 import org.scalatest.flatspec.AnyFlatSpec
@@ -98,6 +98,26 @@ class KafkaSpec extends AnyFlatSpec with Matchers { self =>
     } yield (producer, records)
   }.use(test.tupled).unsafeRunSync()
 
+  def withRecordsBatch[A](topics: String*)(test: (Producer[IO], Ref[IO, List[ConsumerRecord[IO]]]) => IO[A]): A = {
+    for {
+      _       <- executionTime
+      _       <- prepareTopics(topics)
+      records <- Resource.liftF(Ref[IO].of(List.empty[ConsumerRecord[IO]]))
+      _ <- BatchKafkaConsumerBuilder[IO]
+        .withTopics(topics.toSet)
+        .withConsumer(BatchConsumer.of[IO] {
+          case BatchTopic("boom") => IO.raiseError(new Exception("Somebody set up us the bomb"))
+          case batch              => records.update(_ :+ batch.toList)
+        })
+        .resource
+
+      producer <- KafkaProducerBuilder[IO].resource
+
+    } yield (producer, records)
+  }.use(test.tupled).unsafeRunSync()
+
+  behavior of "KafkaConsumer"
+
   it should "should produce and consume messages" in withSingleRecord(topics = foo) { (producer, maybeMessage) =>
     for {
       _ <- producer.send(foo, key = 1, value = "bar")
@@ -133,9 +153,8 @@ class KafkaSpec extends AnyFlatSpec with Matchers { self =>
     }
   }
 
-  it should "should not stop consume even if there is an exception in the consumer" in withMultipleRecords(topics = foo,
-                                                                                                           boom) {
-    (producer, records) =>
+  it should "should not stop consuming even if there is an exception in the consumer" in
+    withMultipleRecords(topics = foo, boom) { (producer, records) =>
       for {
         _ <- (1 to 50).toList.traverse(n => producer.send(foo, value = s"bar #$n"))
         _ <- producer.send(boom, value = "All your base are belong to us.")
@@ -154,5 +173,49 @@ class KafkaSpec extends AnyFlatSpec with Matchers { self =>
         key shouldBe None
         value shouldBe "bar #100"
       }
-  }
+    }
+
+  behavior of "BatchKafkaConsumer"
+
+  it should "should produce and consume batch of messages" in
+    withRecordsBatch(topics = foo) { (producer, records) =>
+      for {
+        _ <- (1 to 100).toList.traverse(n => producer.send(foo, value = s"bar #$n"))
+        _ <- waitUntil(10.seconds) {
+          records.get.map(_.length == 100)
+        }
+        len    <- records.get.map(_.length)
+        record <- records.get.flatMap(l => IO(l.last))
+        topic = record.topic
+        key   <- record.key[Option[Int]]
+        value <- record.as[String]
+      } yield {
+        len shouldBe 100
+        topic shouldBe foo
+        key shouldBe None
+        value shouldBe "bar #100"
+      }
+    }
+
+  it should "should not stop consuming even if there is an exception in the consumer" in
+    withRecordsBatch(topics = foo, boom) { (producer, records) =>
+      for {
+        _ <- (1 to 50).toList.traverse(n => producer.send(foo, value = s"bar #$n"))
+        _ <- producer.send(boom, value = "All your base are belong to us.")
+        _ <- (51 to 100).toList.traverse(n => producer.send(foo, value = s"bar #$n"))
+        _ <- waitUntil(10.seconds) {
+          records.get.map(_.length == 100)
+        }
+        len    <- records.get.map(_.length)
+        record <- records.get.flatMap(l => IO(l.last))
+        topic = record.topic
+        key   <- record.key[Option[Int]]
+        value <- record.as[String]
+      } yield {
+        len shouldBe 100
+        topic shouldBe foo
+        key shouldBe None
+        value shouldBe "bar #100"
+      }
+    }
 }
