@@ -30,5 +30,5 @@ object Record {
   private val b64 = Base64.getUrlEncoder.withoutPadding()
 
   implicit def show[F[_]]: Show[Record[F]] =
-    record => s"[${record.topic}#${b64.encodeToString(record.keyBytes ++ record.valueBytes)}]"
+    record => s"${record.topic}#${b64.encodeToString(record.keyBytes ++ record.valueBytes)}"
 }

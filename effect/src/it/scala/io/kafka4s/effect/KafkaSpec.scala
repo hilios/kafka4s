@@ -122,7 +122,7 @@ class KafkaSpec extends AnyFlatSpec with Matchers { self =>
   it should "should produce and consume messages" in withSingleRecord(topics = foo) { (producer, maybeMessage) =>
     for {
       _ <- producer.send(foo, key = 1, value = "bar")
-      record <- waitFor(10.seconds) {
+      record <- waitFor(30.seconds) {
         maybeMessage.get
       }
       topic = record.topic
@@ -138,7 +138,7 @@ class KafkaSpec extends AnyFlatSpec with Matchers { self =>
   it should "should produce and consume multiple messages" in withMultipleRecords(topics = foo) { (producer, records) =>
     for {
       _ <- (1 to 100).toList.traverse(n => producer.send(foo, value = s"bar #$n"))
-      _ <- waitUntil(10.seconds) {
+      _ <- waitUntil(30.seconds) {
         records.get.map(_.length == 100)
       }
       len    <- records.get.map(_.length)
@@ -160,7 +160,7 @@ class KafkaSpec extends AnyFlatSpec with Matchers { self =>
         _ <- (1 to 50).toList.traverse(n => producer.send(foo, value = s"bar #$n"))
         _ <- producer.send(boom, value = "All your base are belong to us.")
         _ <- (51 to 100).toList.traverse(n => producer.send(foo, value = s"bar #$n"))
-        _ <- waitUntil(10.seconds) {
+        _ <- waitUntil(30.seconds) {
           records.get.map(_.length == 100)
         }
         len    <- records.get.map(_.length)
@@ -182,7 +182,7 @@ class KafkaSpec extends AnyFlatSpec with Matchers { self =>
     withRecordsBatch(topics = foo) { (producer, records) =>
       for {
         _ <- (1 to 100).toList.traverse(n => producer.send(foo, value = s"bar #$n"))
-        _ <- waitUntil(10.seconds) {
+        _ <- waitUntil(30.seconds) {
           records.get.map(_.length == 100)
         }
         len    <- records.get.map(_.length)
@@ -204,7 +204,7 @@ class KafkaSpec extends AnyFlatSpec with Matchers { self =>
         _ <- (1 to 50).toList.traverse(n => producer.send(foo, value = s"bar #$n"))
         _ <- producer.send(boom, value = "All your base are belong to us.")
         _ <- (51 to 100).toList.traverse(n => producer.send(foo, value = s"bar #$n"))
-        _ <- waitUntil(10.seconds) {
+        _ <- waitUntil(30.seconds) {
           records.get.map(_.length == 100)
         }
         len    <- records.get.map(_.length)
