@@ -1,6 +1,6 @@
 package io
 
-import io.kafka4s.consumer.ConsumerSyntax
+import io.kafka4s.consumer.{ConsumerImplicitOps, ConsumerSyntax}
 import io.kafka4s.serdes.SerdeImplicits
 
 package object kafka4s {
@@ -12,5 +12,5 @@ package object kafka4s {
   type BatchRecordConsumer[F[_]] = consumer.BatchRecordConsumer[F]
 
   object syntax extends ConsumerSyntax
-  object implicits extends SerdeImplicits
+  object implicits extends SerdeImplicits with ConsumerImplicitOps
 }
