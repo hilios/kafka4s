@@ -113,7 +113,6 @@ object KafkaConsumer {
       })
       properties <- Resource.liftF(F.delay {
         val p = config.properties
-        p.putIfAbsent(ConsumerConfig.AUTO_OFFSET_RESET_CONFIG, "earliest")
         p.put(ConsumerConfig.ENABLE_AUTO_COMMIT_CONFIG, "false")
         p.put(ConsumerConfig.KEY_DESERIALIZER_CLASS_CONFIG,
               "org.apache.kafka.common.serialization.ByteArrayDeserializer")

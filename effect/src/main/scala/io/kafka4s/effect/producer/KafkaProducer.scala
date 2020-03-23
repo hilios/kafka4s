@@ -22,7 +22,7 @@ class KafkaProducer[F[_]](config: KafkaProducerConfiguration, producer: Producer
     */
   def send1: Kleisli[F, ProducerRecord[F], Return[F]] = Kleisli { record =>
     for {
-      producerRecord <- F.delay(ToKafka[ProducerRecord[F]].transform(record))
+      producerRecord <- F.delay(ToKafka[ProducerRecord[F]].convert(record))
       metadata       <- producer.send(producerRecord.asInstanceOf[DefaultProducerRecord]).attempt
       output = metadata.fold(
         e => Return.Err(record, e),
@@ -59,8 +59,6 @@ object KafkaProducer {
       })
       properties <- Resource.liftF(F.delay {
         val p = config.properties
-        p.putIfAbsent(ProducerConfig.ENABLE_IDEMPOTENCE_CONFIG, "true")
-        p.putIfAbsent(ProducerConfig.ACKS_CONFIG, "all")
         p.put(ProducerConfig.KEY_SERIALIZER_CLASS_CONFIG, "org.apache.kafka.common.serialization.ByteArraySerializer")
         p.put(ProducerConfig.VALUE_SERIALIZER_CLASS_CONFIG, "org.apache.kafka.common.serialization.ByteArraySerializer")
         p

@@ -12,13 +12,13 @@ class ConsumerSpec extends UnitSpec {
     fa.fold(ex => fail(ex.getMessage), identity)
   }
 
-  "$.of" should "wrap a partial function in a Kleisli that may consume a record" in {
+  "$of" should "wrap a partial function in a Kleisli that may consume a record" in {
     val consumerEn: Consumer[Id] = Consumer.of[Id] {
-      case _ @ Topic("my-topic-en") => ()
+      case _ @Topic("my-topic-en") => ()
     }
 
     val consumerPt: Consumer[Id] = Consumer.of[Id] {
-      case _ @ Topic("my-topic-pt") => ()
+      case _ @Topic("my-topic-pt") => ()
     }
 
     val consumer: Consumer[Id] = consumerEn <+> consumerPt
@@ -39,7 +39,7 @@ class ConsumerSpec extends UnitSpec {
 
   behavior of "RecordConsumer[F]"
 
-  ".orNotFound" should "transform the Consumer in a total function that lifts the record in a Return" in {
+  "#orNotFound" should "transform the Consumer in a total function that lifts the record in a Return" in {
     val consumer = Consumer
       .of[Id] {
         case _ @Topic("my-topic-en") => ()

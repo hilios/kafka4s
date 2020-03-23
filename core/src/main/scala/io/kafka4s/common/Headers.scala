@@ -105,6 +105,8 @@ final class Headers[F[_]] private (private val headers: List[Header[F]]) extends
 object Headers {
   def empty[F[_]]: Headers[F] = new Headers[F](List.empty)
 
+  def apply[F[_]](headers: Header[F]*): Headers[F] = new Headers(headers.toList)
+
   def apply[F[_]](headers: List[Header[F]]): Headers[F] = new Headers(headers)
 
   def apply[F[_]](headers: ApacheKafkaHeaders): Headers[F] =
@@ -113,8 +115,8 @@ object Headers {
   implicit def toKafka[F[_]]: ToKafka[Headers[F]] = new ToKafka[Headers[F]] {
     type Result = ApacheKafkaHeaders
 
-    def transform(headers: Headers[F]): ApacheKafkaHeaders = {
-      val h = headers.map(h => ToKafka[Header[F]].transform(h))
+    def convert(headers: Headers[F]): ApacheKafkaHeaders = {
+      val h = headers.map(h => ToKafka[Header[F]].convert(h))
       new RecordHeaders(h.asInstanceOf[Iterable[ApacheKafkaHeader]].asJava)
     }
   }

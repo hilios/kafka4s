@@ -16,7 +16,7 @@ class GetterSpec extends UnitSpec {
   properties.put("inf", "Inf")
   properties.put("duration", "1000 ms")
 
-  ".getter[A](key)" should "get and cast a key from the properties object" in {
+  "#getter[A](key)" should "get and cast a key from the properties object" in {
     properties.getter[String]("str") shouldBe Right("Hello, World!")
     properties.getter[Int]("int") shouldBe Right(12345)
     properties.getter[Boolean]("bool") shouldBe Right(true)

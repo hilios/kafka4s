@@ -13,7 +13,7 @@ class BatchConsumerSpec extends UnitSpec {
     fa.fold(ex => fail(ex.getMessage), identity)
   }
 
-  "$.of" should "wrap a partial function in a Kleisli that may consume a record" in {
+  "$of" should "wrap a partial function in a Kleisli that may consume a record" in {
     val consumer: BatchConsumer[Id] = BatchConsumer.of[Id] {
       case BatchTopic("my-topic") => ()
     }
@@ -35,7 +35,7 @@ class BatchConsumerSpec extends UnitSpec {
 
   behavior of "BatchRecordConsumer[F]"
 
-  ".orNotFound" should "transform the Consumer in a total function that lifts the record in a Return" in {
+  "#orNotFound" should "transform the Consumer in a total function that lifts the record in a Return" in {
     val consumer = BatchConsumer
       .of[Id] {
         case BatchTopic("hello-topic") => ()

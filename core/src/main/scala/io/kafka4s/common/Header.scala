@@ -55,6 +55,6 @@ object Header {
   implicit def toKafka[F[_]]: ToKafka[Header[F]] = new ToKafka[Header[F]] {
     type Result = ApacheKafkaHeader
 
-    def transform(header: Header[F]): ApacheKafkaHeader = new RecordHeader(header.key, header.value)
+    def convert(header: Header[F]): ApacheKafkaHeader = new RecordHeader(header.key, header.value)
   }
 }

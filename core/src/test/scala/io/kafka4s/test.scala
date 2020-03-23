@@ -1,6 +1,7 @@
 package io.kafka4s
 
 import cats.{Id, Monad, MonadError}
+import io.kafka4s.serdes.Serializer
 import org.scalamock.scalatest.MockFactory
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should.Matchers
@@ -8,6 +9,12 @@ import org.scalatest.matchers.should.Matchers
 object test {
 
   trait UnitSpec extends AnyFlatSpec with Matchers with MockFactory {
+
+    implicit class UnsafeSerializerOps[A](val value: A)(implicit S: Serializer[A]) {
+
+      def unsafeSerialize: Array[Byte] =
+        S.serialize(value).fold(throw _, identity)
+    }
 
     implicit val applicativeError = new MonadError[Id, Throwable] {
 

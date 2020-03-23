@@ -102,14 +102,14 @@ object ProducerRecord {
   implicit def toKafka[F[_]]: ToKafka[ProducerRecord[F]] = new ToKafka[ProducerRecord[F]] {
     type Result = DefaultProducerRecord
 
-    def transform(record: ProducerRecord[F]): DefaultProducerRecord = {
-      val headers = ToKafka[Headers[F]].transform(record.headers)
+    def convert(record: ProducerRecord[F]): DefaultProducerRecord = {
+      val headers = ToKafka[Headers[F]].convert(record.headers)
       new DefaultProducerRecord(record.topic,
                                 null,
                                 null,
                                 record.keyBytes,
                                 record.valueBytes,
-                                headers.asInstanceOf[RecordHeaders].toArray().toIterable.asJava)
+                                headers.asInstanceOf[RecordHeaders].toArray.toIterable.asJava)
     }
   }
 

@@ -21,7 +21,7 @@ class ProducerSpec extends UnitSpec {
       Kleisli(Ack(_, 0, Some(0L), Some(Instant.now())).asInstanceOf[Id[Return[Id]]])
   }
 
-  ".send" should "create a record from a topic and value" in {
+  "#send" should "create a record from a topic and value" in {
     val ack = producer.send(topic, hello)
     ack.record.topic shouldBe topic
     ack.record.as[String] shouldBe hello
