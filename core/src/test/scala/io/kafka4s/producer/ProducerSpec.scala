@@ -4,8 +4,8 @@ import java.time.Instant
 
 import cats.Id
 import cats.data.Kleisli
-import Return.Ack
-import io.kafka4s.serdes._
+import io.kafka4s.implicits._
+import io.kafka4s.producer.Return.Ack
 import io.kafka4s.test.UnitSpec
 
 class ProducerSpec extends UnitSpec {

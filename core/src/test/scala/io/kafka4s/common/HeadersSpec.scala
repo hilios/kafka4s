@@ -1,6 +1,7 @@
 package io.kafka4s.common
 
 import cats.Id
+import io.kafka4s.implicits._
 import io.kafka4s.test.UnitSpec
 
 class HeadersSpec extends UnitSpec {

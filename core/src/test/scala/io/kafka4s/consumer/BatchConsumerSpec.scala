@@ -3,7 +3,8 @@ package io.kafka4s.consumer
 import cats.Id
 import cats.data.NonEmptyList
 import cats.implicits._
-import io.kafka4s.dsl._
+import io.kafka4s.implicits._
+import io.kafka4s.syntax._
 import io.kafka4s.test.UnitSpec
 
 class BatchConsumerSpec extends UnitSpec {
@@ -13,7 +14,7 @@ class BatchConsumerSpec extends UnitSpec {
     fa.fold(ex => fail(ex.getMessage), identity)
   }
 
-  "$of" should "wrap a partial function in a Kleisli that may consume a record" in {
+  "$.of" should "wrap a partial function in a Kleisli that may consume a record" in {
     val consumer: BatchConsumer[Id] = BatchConsumer.of[Id] {
       case BatchTopic("my-topic") => ()
     }

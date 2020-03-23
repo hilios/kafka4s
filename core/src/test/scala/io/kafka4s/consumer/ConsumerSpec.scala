@@ -2,7 +2,8 @@ package io.kafka4s.consumer
 
 import cats.Id
 import cats.implicits._
-import io.kafka4s.dsl._
+import io.kafka4s.implicits._
+import io.kafka4s.syntax._
 import io.kafka4s.test.UnitSpec
 
 class ConsumerSpec extends UnitSpec {
@@ -12,7 +13,7 @@ class ConsumerSpec extends UnitSpec {
     fa.fold(ex => fail(ex.getMessage), identity)
   }
 
-  "$of" should "wrap a partial function in a Kleisli that may consume a record" in {
+  "$.of" should "wrap a partial function in a Kleisli that may consume a record" in {
     val consumerEn: Consumer[Id] = Consumer.of[Id] {
       case _ @Topic("my-topic-en") => ()
     }
@@ -37,7 +38,7 @@ class ConsumerSpec extends UnitSpec {
     }
   }
 
-  behavior of "RecordConsumer[F]"
+  behavior of "ConsumerImplicits and RecordConsumer[F]"
 
   "#orNotFound" should "transform the Consumer in a total function that lifts the record in a Return" in {
     val consumer = Consumer

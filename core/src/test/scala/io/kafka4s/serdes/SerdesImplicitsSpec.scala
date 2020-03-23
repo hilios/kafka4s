@@ -5,7 +5,7 @@ import java.util.UUID
 import io.kafka4s.serdes.implicits._
 import io.kafka4s.test.UnitSpec
 
-class SerdesSpec extends UnitSpec {
+class SerdesImplicitsSpec extends UnitSpec {
 
   def test[T](input: T)(implicit serde: Serde[T]): Either[Throwable, T] =
     for {

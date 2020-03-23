@@ -1,11 +1,12 @@
 package io.kafka4s.common
 
 import cats.Id
+import io.kafka4s.implicits._
 import io.kafka4s.test.UnitSpec
 
 class HeaderSpec extends UnitSpec {
 
-  "$apply" should "create a Header instance from a org.apache.kafka.common.header.Header instance" in {
+  "$.apply" should "create a Header instance from a org.apache.kafka.common.header.Header instance" in {
     val recordHeader =
       new org.apache.kafka.common.header.internals.RecordHeader("foo", "bar".unsafeSerialize)
     val header = Header[Id](recordHeader)
@@ -13,7 +14,7 @@ class HeaderSpec extends UnitSpec {
     header.as[String] shouldBe "bar"
   }
 
-  "$of" should "create a Header instance from a key and value tuple" in {
+  "$.of" should "create a Header instance from a key and value tuple" in {
     val header = Header.of[Id]("foo" -> "bar")
     header.key shouldBe "foo"
     header.as[String] shouldBe "bar"
