@@ -1,5 +1,7 @@
 package io.kafka4s
 
-package object serdes extends SerdeImplicits {
+package object serdes {
   type Result[T] = Either[Throwable, T]
+
+  object implicits extends SerdeImplicits
 }

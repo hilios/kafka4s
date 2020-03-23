@@ -6,6 +6,7 @@ import cats.implicits._
 import cats.{Monad, MonadError, Semigroup}
 import io.kafka4s.common.{Header, Record}
 import io.kafka4s.producer.ProducerRecord
+import io.kafka4s.serdes.implicits._
 
 trait DeadLetter[F[_]] {
   def build(record: Record[F], throwable: Throwable): F[Record[F]]
