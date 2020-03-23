@@ -3,6 +3,8 @@ package io.kafka4s.consumer
 import cats.Id
 import cats.data.NonEmptyList
 import io.kafka4s.common.{Header, Headers}
+import io.kafka4s.implicits._
+import io.kafka4s.syntax._
 import io.kafka4s.test.UnitSpec
 
 class ConsumerSyntaxSpec extends UnitSpec {

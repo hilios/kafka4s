@@ -4,8 +4,9 @@ import cats.data.Kleisli
 import cats.implicits._
 import io.kafka4s.common.Record
 import io.kafka4s.consumer.{Consumer, ConsumerRecord, Return => ConsumerReturn}
-import io.kafka4s.dsl._
+import io.kafka4s.implicits._
 import io.kafka4s.producer.{Producer, ProducerRecord, Return => ProducerReturn}
+import io.kafka4s.syntax._
 import io.kafka4s.test.UnitSpec
 
 class DeadLetterQueueSpec extends UnitSpec { self =>

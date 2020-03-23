@@ -12,7 +12,7 @@ class KafkaProducerConfigurationSpec extends UnitSpec {
   val props = new Properties()
   props.put(ProducerConfig.BOOTSTRAP_SERVERS_CONFIG, "localhost:9092")
 
-  "$loadFrom" should "extract the bootstrap servers from the properties" in {
+  "$.loadFrom" should "extract the bootstrap servers from the properties" in {
     val config = SyncIO.fromEither(KafkaProducerConfiguration.loadFrom(props)).unsafeRunSync()
     config.bootstrapServers shouldBe Seq("localhost:9092")
     config.compression shouldBe CompressionType.None
@@ -20,7 +20,7 @@ class KafkaProducerConfigurationSpec extends UnitSpec {
     config.acks shouldBe Acks.One
   }
 
-  "$load" should "load the configuration from the HOCON file" in {
+  "$.load" should "load the configuration from the HOCON file" in {
     val config = SyncIO.fromEither(KafkaProducerConfiguration.load).unsafeRunSync()
     config.bootstrapServers shouldBe Seq("config:9092")
     config.compression shouldBe CompressionType.Gzip

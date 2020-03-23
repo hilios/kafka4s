@@ -5,10 +5,11 @@ import cats.effect.{Clock, ContextShift, IO, Resource, Timer}
 import cats.implicits._
 import io.kafka4s._
 import io.kafka4s.consumer._
-import io.kafka4s.dsl._
 import io.kafka4s.effect.admin.KafkaAdminBuilder
 import io.kafka4s.effect.consumer.{BatchKafkaConsumerBuilder, KafkaConsumerBuilder}
 import io.kafka4s.effect.producer.KafkaProducerBuilder
+import io.kafka4s.implicits._
+import io.kafka4s.syntax._
 import org.apache.kafka.clients.admin.NewTopic
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should.Matchers

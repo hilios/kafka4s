@@ -4,7 +4,7 @@ import cats.data.NonEmptyList
 import io.kafka4s.common.{Header, Record}
 import io.kafka4s.serdes.Deserializer
 
-private[kafka4s] trait ConsumerSyntax extends ConsumerImplicits {
+private[kafka4s] trait ConsumerSyntax {
 
   /**
     * Combine different matchers

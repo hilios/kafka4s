@@ -4,9 +4,10 @@ import java.util.Properties
 
 import cats.ApplicativeError
 import cats.effect._
-import io.kafka4s.effect.config
 import io.kafka4s.RecordConsumer
 import io.kafka4s.consumer._
+import io.kafka4s.effect.config
+import io.kafka4s.implicits._
 
 import scala.concurrent.duration._
 import scala.util.matching.Regex
