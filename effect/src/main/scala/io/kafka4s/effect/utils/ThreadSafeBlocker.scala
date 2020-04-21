@@ -1,8 +1,8 @@
-package io.kafka4s.effect.consumer
+package io.kafka4s.effect.utils
 
 import cats.effect.concurrent.Semaphore
-import cats.implicits._
 import cats.effect.{Blocker, Concurrent, ContextShift}
+import cats.implicits._
 
 import scala.concurrent.blocking
 

@@ -60,7 +60,7 @@ class KafkaSpec extends AnyFlatSpec with Matchers { self =>
     for {
       admin <- KafkaAdminBuilder[IO].resource
       newTopics = topics.map(new NewTopic(_, 1, 1))
-      _ <- Resource.make(admin.createTopics(newTopics))(_ => admin.deleteTopics(topics))
+      _ <- Resource.make(admin.createTopics(newTopics))(_ => admin.deleteTopics(topics)).attempt
     } yield ()
 
   def withSingleRecord[A](topics: String*)(test: (Producer[IO], Deferred[IO, ConsumerRecord[IO]]) => IO[A]): A = {

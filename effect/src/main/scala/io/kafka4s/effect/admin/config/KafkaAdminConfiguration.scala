@@ -12,7 +12,7 @@ object KafkaAdminConfiguration {
 
   def load: Either[Throwable, KafkaAdminConfiguration] =
     for {
-      properties <- properties.fromConfig("kafka4s.consumer")
+      properties <- properties.fromConfig("kafka4s.admin")
       config     <- loadFrom(properties)
     } yield config
 

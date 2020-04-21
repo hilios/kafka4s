@@ -7,6 +7,7 @@ import cats.Applicative
 import cats.effect._
 import cats.implicits._
 import io.kafka4s.consumer.{ConsumerRebalance, DefaultConsumer, DefaultConsumerRecord}
+import io.kafka4s.effect.utils.ThreadSafeBlocker
 import org.apache.kafka.clients.consumer.{
   ConsumerRebalanceListener,
   OffsetAndMetadata,
