@@ -3,7 +3,8 @@ package io.kafka4s.effect.admin
 import java.util.Properties
 
 import cats.effect.{Resource, Sync}
-import io.kafka4s.effect.config
+import io.kafka4s.effect.admin.config._
+import io.kafka4s.effect.properties.implicits._
 
 case class KafkaAdminBuilder[F[_]] private (properties: Properties) {
 
@@ -13,7 +14,7 @@ case class KafkaAdminBuilder[F[_]] private (properties: Properties) {
     copy(properties = properties)
 
   def withProperties(properties: Map[String, String]): Self =
-    copy(properties = config.mapToProperties(properties))
+    copy(properties = properties.toProperties)
 
   def resource(implicit F: Sync[F]): Resource[F, AdminEffect[F]] =
     for {

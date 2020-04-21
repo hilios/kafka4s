@@ -8,6 +8,7 @@ import cats.implicits._
 import io.kafka4s.common.ToKafka
 import io.kafka4s.effect.log.Logger
 import io.kafka4s.effect.log.impl.Slf4jLogger
+import io.kafka4s.effect.producer.config.KafkaProducerConfiguration
 import io.kafka4s.producer.{DefaultProducerRecord, Producer, ProducerRecord, Return}
 import org.apache.kafka.clients.producer.ProducerConfig
 

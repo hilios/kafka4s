@@ -5,7 +5,7 @@ import java.util.Properties
 import cats.ApplicativeError
 import cats.effect.{ConcurrentEffect, ContextShift, Resource, Sync, Timer}
 import io.kafka4s.consumer._
-import io.kafka4s.effect.config
+import io.kafka4s.effect.properties.implicits._
 import io.kafka4s.implicits._
 
 import scala.concurrent.duration._
@@ -28,7 +28,7 @@ case class BatchKafkaConsumerBuilder[F[_]](pollTimeout: FiniteDuration,
     copy(properties = properties)
 
   def withProperties(properties: Map[String, String]): Self =
-    copy(properties = config.mapToProperties(properties))
+    copy(properties = properties.toProperties)
 
   def withPattern(regex: Regex): Self =
     copy(subscription = Subscription.Pattern(regex))

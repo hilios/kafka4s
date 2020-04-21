@@ -1,8 +1,9 @@
-package io.kafka4s.effect.admin
+package io.kafka4s.effect.admin.config
 
 import java.util.Properties
 
-import io.kafka4s.effect.config._
+import io.kafka4s.effect.properties
+import io.kafka4s.effect.properties.implicits._
 import org.apache.kafka.clients.consumer.ConsumerConfig
 
 case class KafkaAdminConfiguration(bootstrapServers: Seq[String], properties: Properties)
@@ -11,7 +12,7 @@ object KafkaAdminConfiguration {
 
   def load: Either[Throwable, KafkaAdminConfiguration] =
     for {
-      properties <- configToProperties("kafka4s.consumer")
+      properties <- properties.fromConfig("kafka4s.consumer")
       config     <- loadFrom(properties)
     } yield config
 

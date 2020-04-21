@@ -1,8 +1,9 @@
-package io.kafka4s.effect.config
+package io.kafka4s.effect.properties
 
 import java.util.Properties
 
 import cats.implicits._
+import io.kafka4s.effect.properties.implicits._
 import io.kafka4s.effect.test.UnitSpec
 
 import scala.concurrent.duration._

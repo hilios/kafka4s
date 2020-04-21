@@ -1,4 +1,4 @@
-package io.kafka4s.effect.config
+package io.kafka4s.effect.properties
 
 import cats.implicits._
 

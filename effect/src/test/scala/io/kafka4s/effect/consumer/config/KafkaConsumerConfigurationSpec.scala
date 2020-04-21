@@ -1,4 +1,4 @@
-package io.kafka4s.effect.consumer
+package io.kafka4s.effect.consumer.config
 
 import java.util.Properties
 

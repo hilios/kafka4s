@@ -3,7 +3,7 @@ package io.kafka4s.effect.producer
 import java.util.Properties
 
 import cats.effect.{Concurrent, Resource}
-import io.kafka4s.effect.config
+import io.kafka4s.effect.properties.implicits._
 
 case class KafkaProducerBuilder[F[_]](properties: Properties) {
 
@@ -13,7 +13,7 @@ case class KafkaProducerBuilder[F[_]](properties: Properties) {
     copy(properties = properties)
 
   def withProperties(properties: Map[String, String]): Self =
-    copy(properties = config.mapToProperties(properties))
+    copy(properties = properties.toProperties)
 
   def resource(implicit F: Concurrent[F]): Resource[F, KafkaProducer[F]] =
     KafkaProducer.resource[F](builder = this)

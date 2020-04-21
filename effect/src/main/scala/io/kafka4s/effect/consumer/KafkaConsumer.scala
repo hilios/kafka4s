@@ -8,6 +8,7 @@ import cats.effect.concurrent.Ref
 import cats.implicits._
 import io.kafka4s.RecordConsumer
 import io.kafka4s.consumer.{ConsumerRecord, DefaultConsumerRecord, Return, Subscription}
+import io.kafka4s.effect.consumer.config.KafkaConsumerConfiguration
 import io.kafka4s.effect.log.Logger
 import io.kafka4s.effect.log.impl.Slf4jLogger
 import org.apache.kafka.clients.consumer.{ConsumerConfig, OffsetAndMetadata}

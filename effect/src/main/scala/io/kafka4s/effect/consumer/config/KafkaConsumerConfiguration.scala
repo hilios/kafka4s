@@ -1,10 +1,10 @@
-package io.kafka4s.effect.consumer
+package io.kafka4s.effect.consumer.config
 
 import java.util.Properties
 
 import cats.syntax.either._
-import io.kafka4s.effect.config._
-import io.kafka4s.effect.consumer.config._
+import io.kafka4s.effect.properties
+import io.kafka4s.effect.properties.implicits._
 import org.apache.kafka.clients.consumer.ConsumerConfig
 
 case class KafkaConsumerConfiguration private (bootstrapServers: Seq[String],
@@ -16,7 +16,7 @@ object KafkaConsumerConfiguration {
 
   def load: Either[Throwable, KafkaConsumerConfiguration] =
     for {
-      properties <- configToProperties("kafka4s.consumer")
+      properties <- properties.fromConfig("kafka4s.consumer")
       config     <- loadFrom(properties)
     } yield config
 

@@ -1,10 +1,10 @@
-package io.kafka4s.effect.producer
+package io.kafka4s.effect.producer.config
 
 import java.util.Properties
 
 import cats.syntax.either._
-import io.kafka4s.effect.config._
-import io.kafka4s.effect.producer.config.{Acks, CompressionType}
+import io.kafka4s.effect.properties
+import io.kafka4s.effect.properties.implicits._
 import org.apache.kafka.clients.producer.ProducerConfig
 
 case class KafkaProducerConfiguration private (bootstrapServers: Seq[String],
@@ -17,7 +17,7 @@ object KafkaProducerConfiguration {
 
   def load: Either[Throwable, KafkaProducerConfiguration] =
     for {
-      properties <- configToProperties("kafka4s.producer")
+      properties <- properties.fromConfig("kafka4s.producer")
       config     <- loadFrom(properties)
     } yield config
 
