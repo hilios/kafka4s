@@ -1,4 +1,4 @@
-package io.kafka4s.effect.producer.adts
+package io.kafka4s.effect.producer.config
 
 /**
   * The number of acknowledgments the producer requires the leader to have received before considering a request

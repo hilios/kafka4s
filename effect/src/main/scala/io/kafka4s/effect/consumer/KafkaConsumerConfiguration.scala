@@ -4,7 +4,7 @@ import java.util.Properties
 
 import cats.syntax.either._
 import io.kafka4s.effect.config._
-import io.kafka4s.effect.consumer.adts._
+import io.kafka4s.effect.consumer.config._
 import org.apache.kafka.clients.consumer.ConsumerConfig
 
 case class KafkaConsumerConfiguration private (bootstrapServers: Seq[String],

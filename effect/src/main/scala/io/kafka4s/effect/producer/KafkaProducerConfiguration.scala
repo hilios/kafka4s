@@ -4,7 +4,7 @@ import java.util.Properties
 
 import cats.syntax.either._
 import io.kafka4s.effect.config._
-import io.kafka4s.effect.producer.adts.{Acks, CompressionType}
+import io.kafka4s.effect.producer.config.{Acks, CompressionType}
 import org.apache.kafka.clients.producer.ProducerConfig
 
 case class KafkaProducerConfiguration private (bootstrapServers: Seq[String],
