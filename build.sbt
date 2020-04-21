@@ -8,48 +8,15 @@ ThisBuild / turbo                  := true
 
 Global / concurrentRestrictions := Seq(Tags.limitAll(1))
 
-val Dependencies = new {
-  val kafkaClients     = "org.apache.kafka" % "kafka-clients"       % "2.3.0"
-  val catsCore         = "org.typelevel"    %% "cats-core"          % "1.6.0"
-  val catsEffect       = "org.typelevel"    %% "cats-effect"        % "1.4.0"
-  val catsRetry        = "com.github.cb372" %% "cats-retry"         % "1.1.0"
-  val config           = "com.typesafe"     % "config"              % "1.4.0"
-  val slf4j            = "org.slf4j"        % "slf4j-api"           % "1.7.25"
-  val logback          = "ch.qos.logback"   % "logback-classic"     % "1.2.3"
-  val scalaTest        = "org.scalatest"    %% "scalatest"          % "3.1.1"
-  val scalaMock        = "org.scalamock"    %% "scalamock"          % "4.4.0"
-  val scalaReflect     = "org.scala-lang"    % "scala-reflect"
-  val betterMonadicFor = "com.olegpy"       %% "better-monadic-for" % "0.3.1"
-  val kindProjector    = "org.typelevel"    %% "kind-projector"     % "0.10.3"
-}
-
 lazy val kafka4s = project.in(file("."))
   .enablePlugins(MicrositesPlugin)
   .aggregate(core, effect)
+  .settings(Microsite.settings)
   .settings(
     // Root project
     name := "kafka4s",
     skip in publish := true,
     description := "A minimal Scala-idiomatic library for Kafka",
-  )
-  .settings(
-    micrositeName := "Kafka4s",
-    micrositeDescription := "",
-    micrositeUrl := "https://kafka4s.github.io/kafka4s",
-    micrositeBaseUrl := "/kafka4s",
-    micrositePalette := Map(
-      "brand-primary"     -> "#E05236",
-      "brand-secondary"   -> "#3F3242",
-      "brand-tertiary"    -> "#2D232F",
-      "gray-dark"         -> "#453E46",
-      "gray"              -> "#837F84",
-      "gray-light"        -> "#E3E2E3",
-      "gray-lighter"      -> "#F4F3F4",
-      "white-color"       -> "#FFFFFF"
-    ),
-    mdocVariables := Map(
-      "VERSION" -> version.value
-    )
   )
 
 lazy val core = project.in(file("core"))
@@ -57,7 +24,7 @@ lazy val core = project.in(file("core"))
     commonSettings,
     libraryDependencies ++= Seq(
       Dependencies.kafkaClients,
-      Dependencies.catsCore,
+      Dependencies.catsCore % Provided,
       Dependencies.catsRetry,
     )
   )
@@ -69,7 +36,7 @@ lazy val effect = project.in(file("effect"))
   .settings(
     commonSettings,
     libraryDependencies ++= Seq(
-      Dependencies.catsEffect,
+      Dependencies.catsEffect % Provided,
       Dependencies.config,
       Dependencies.slf4j,
       Dependencies.logback % IntegrationTest,
@@ -78,6 +45,7 @@ lazy val effect = project.in(file("effect"))
   )
 
 lazy val commonSettings = Seq(
+  autoCompilerPlugins := true,
   fork in Test := true,
   fork in IntegrationTest := true,
   parallelExecution in Test := false,
