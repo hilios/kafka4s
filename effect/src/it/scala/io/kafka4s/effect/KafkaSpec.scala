@@ -1,7 +1,7 @@
 package io.kafka4s.effect
 
 import cats.effect.concurrent.{Deferred, Ref}
-import cats.effect.{Clock, ContextShift, IO, Resource, Timer}
+import cats.effect.{Blocker, Clock, ContextShift, IO, Resource, Timer}
 import cats.implicits._
 import io.kafka4s._
 import io.kafka4s.consumer._
@@ -21,6 +21,7 @@ class KafkaSpec extends AnyFlatSpec with Matchers { self =>
 
   implicit val contextShift: ContextShift[IO] = IO.contextShift(ExecutionContext.global)
   implicit val timer: Timer[IO]               = IO.timer(ExecutionContext.global)
+  val blocker                                 = Blocker.liftExecutionContext(ExecutionContext.global)
 
   val foo  = "foo"
   val boom = "boom"
@@ -68,7 +69,7 @@ class KafkaSpec extends AnyFlatSpec with Matchers { self =>
       _           <- executionTime
       _           <- prepareTopics(topics)
       firstRecord <- Resource.liftF(Deferred[IO, ConsumerRecord[IO]])
-      _ <- KafkaConsumerBuilder[IO]
+      _ <- KafkaConsumerBuilder[IO](blocker)
         .withTopics(topics: _*)
         .withConsumer(Consumer.of[IO] {
           case Topic("boom") => IO.raiseError(new Exception("Somebody set up us the bomb"))
@@ -86,7 +87,7 @@ class KafkaSpec extends AnyFlatSpec with Matchers { self =>
       _       <- executionTime
       _       <- prepareTopics(topics)
       records <- Resource.liftF(Ref[IO].of(List.empty[ConsumerRecord[IO]]))
-      _ <- KafkaConsumerBuilder[IO]
+      _ <- KafkaConsumerBuilder[IO](blocker)
         .withTopics(topics.toSet)
         .withConsumer(Consumer.of[IO] {
           case Topic("boom") => IO.raiseError(new Exception("Somebody set up us the bomb"))

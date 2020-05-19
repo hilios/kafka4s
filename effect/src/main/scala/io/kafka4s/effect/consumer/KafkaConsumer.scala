@@ -1,7 +1,5 @@
 package io.kafka4s.effect.consumer
 
-import java.util.concurrent.Executors
-
 import cats.data.NonEmptyList
 import cats.effect._
 import cats.effect.concurrent.Ref
@@ -62,22 +60,19 @@ class KafkaConsumer[F[_]](config: KafkaConsumerConfiguration,
         logger.error(s"Consumer failed after $totalDelay and $totalRetries retries", throwable)
     }
 
-  private def onKafkaExceptions(throwable: Throwable): Boolean = throwable match {
-    case _: KafkaException => true
-    case _                 => false
-  }
+  private val onKafkaException: Throwable => Boolean = (_: Throwable).isInstanceOf[KafkaException]
 
   private def fetch(exitSignal: Ref[F, Boolean]): F[Unit] = {
     val loop = for {
       _       <- logger.trace("Polling records...")
       records <- consumer.poll(pollTimeout)
-      _       <- if (records.isEmpty) F.unit else F.delay(NonEmptyList.fromListUnsafe(records.toList)) >>= consume
+      _       <- NonEmptyList.fromList(records.toList).fold(logger.trace("No records fetched"))(consume)
       exit    <- exitSignal.get
     } yield exit
 
-    retry.retryingOnSomeErrors(retryPolicy, onKafkaExceptions, logErrors) {
-      loop.flatMap(exit => if (exit) F.unit else fetch(exitSignal))
-    }
+    retry
+      .retryingOnSomeErrors(retryPolicy, onKafkaException, logErrors)(loop)
+      .flatMap(exit => if (exit) F.unit else fetch(exitSignal))
   }
 
   private def subscribe: F[Unit] = subscription match {
@@ -86,7 +81,7 @@ class KafkaConsumer[F[_]](config: KafkaConsumerConfiguration,
     case Subscription.Empty          => F.unit
   }
 
-  def start: F[CancelToken[F]] =
+  private def start: F[CancelToken[F]] =
     for {
       exitSignal <- Ref.of[F, Boolean](false)
       _ <- logger.info(
@@ -95,7 +90,7 @@ class KafkaConsumer[F[_]](config: KafkaConsumerConfiguration,
       fiber <- F.start(fetch(exitSignal))
     } yield exitSignal.set(true) >> fiber.join
 
-  def close: F[Unit] =
+  private def close: F[Unit] =
     logger.info("Stopping KafkaConsumer...")
 
   def resource: Resource[F, Unit] =
@@ -121,9 +116,7 @@ object KafkaConsumer {
               "org.apache.kafka.common.serialization.ByteArrayDeserializer")
         p
       })
-      es <- Resource.make(F.delay(Executors.newCachedThreadPool()))(e => F.delay(e.shutdown()))
-      blocker = Blocker.liftExecutorService(es)
-      consumer <- Resource.make(ConsumerEffect[F](properties, blocker))(c => c.wakeup >> c.close())
+      consumer <- ConsumerEffect.resource[F](properties, builder.blocker)
       logger   <- Resource.liftF(Slf4jLogger[F].of[KafkaConsumer[Any]])
       c = new KafkaConsumer[F](config,
                                consumer,

@@ -12,7 +12,8 @@ import io.kafka4s.implicits._
 import scala.concurrent.duration._
 import scala.util.matching.Regex
 
-case class KafkaConsumerBuilder[F[_]](pollTimeout: FiniteDuration,
+case class KafkaConsumerBuilder[F[_]](blocker: Blocker,
+                                      pollTimeout: FiniteDuration,
                                       properties: Properties,
                                       subscription: Subscription,
                                       recordConsumer: RecordConsumer[F]) {
@@ -51,8 +52,9 @@ case class KafkaConsumerBuilder[F[_]](pollTimeout: FiniteDuration,
 
 object KafkaConsumerBuilder {
 
-  def apply[F[_]: Sync]: KafkaConsumerBuilder[F] =
-    KafkaConsumerBuilder[F](pollTimeout    = 100.millis,
+  def apply[F[_]: Sync](blocker: Blocker): KafkaConsumerBuilder[F] =
+    KafkaConsumerBuilder[F](blocker,
+                            pollTimeout    = 100.millis,
                             properties     = new Properties(),
                             subscription   = Subscription.Empty,
                             recordConsumer = Consumer.empty[F].orNotFound)

@@ -99,8 +99,8 @@ class ConsumerEffect[F[_]] private (consumer: DefaultConsumer,
   def commit(offsets: Map[TopicPartition, OffsetAndMetadata]): F[Unit] =
     threadSafe.delay(consumer.commitSync(offsets.asJava))
 
-  def poll(timeout: FiniteDuration): F[Iterable[DefaultConsumerRecord]] =
-    threadSafe.delay(consumer.poll(JDuration.ofMillis(timeout.toMillis)).asScala)
+  def poll(timeout: FiniteDuration): F[Iterator[DefaultConsumerRecord]] =
+    threadSafe.delay(consumer.poll(JDuration.ofMillis(timeout.toMillis)).iterator().asScala)
 }
 
 object ConsumerEffect {
@@ -113,4 +113,7 @@ object ConsumerEffect {
       consumer   <- F.delay(new ApacheKafkaConsumer[Array[Byte], Array[Byte]](properties))
       threadSafe <- ThreadSafeBlocker[F](blocker)
     } yield new ConsumerEffect(consumer, blocker, threadSafe, noop[F])
+
+  def resource[F[_]](properties: Properties, blocker: Blocker)(implicit F: ConcurrentEffect[F], CS: ContextShift[F]) =
+    Resource.make(ConsumerEffect[F](properties, blocker))(c => c.wakeup >> c.close())
 }

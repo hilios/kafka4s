@@ -44,6 +44,21 @@ lazy val effect = project.in(file("effect"))
     )
   )
 
+lazy val fs2 = project.in(file("fs2"))
+  .dependsOn(core, effect)
+  .configs(IntegrationTest)
+  .settings(Defaults.itSettings)
+  .settings(
+    commonSettings,
+    libraryDependencies ++= Seq(
+      Dependencies.fs2 % Provided,
+      Dependencies.config,
+      Dependencies.slf4j,
+      Dependencies.logback, // % IntegrationTest,
+      Dependencies.scalaTest % IntegrationTest,
+    )
+  )
+
 lazy val commonSettings = Seq(
   autoCompilerPlugins := true,
   fork in Test := true,
