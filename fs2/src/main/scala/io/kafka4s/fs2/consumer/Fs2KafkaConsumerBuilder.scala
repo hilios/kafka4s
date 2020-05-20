@@ -3,11 +3,10 @@ package io.kafka4s.fs2.consumer
 import java.util.Properties
 
 import cats.ApplicativeError
-import cats.effect.{Blocker, ConcurrentEffect, ContextShift, Sync, Timer}
+import cats.effect.{Blocker, ConcurrentEffect, ContextShift, Resource, Sync, Timer}
 import fs2.Stream
 import io.kafka4s.RecordConsumer
 import io.kafka4s.consumer.{Consumer, Subscription}
-import io.kafka4s.effect.consumer.KafkaConsumerBuilder
 import io.kafka4s.effect.properties.implicits._
 
 import scala.concurrent.duration._
@@ -52,16 +51,20 @@ case class Fs2KafkaConsumerBuilder[F[_]](blocker: Blocker,
   def stream(implicit F: ConcurrentEffect[F], T: Timer[F], CS: ContextShift[F]): Stream[F, Unit] =
     Fs2KafkaConsumer[F](builder = this)
 
+  def resource(implicit F: ConcurrentEffect[F], T: Timer[F], CS: ContextShift[F]): Resource[F, Unit] =
+    stream.compile.resource.drain
+
   def serve(implicit F: ConcurrentEffect[F], T: Timer[F], CS: ContextShift[F]): F[Unit] =
     stream.compile.drain
 }
 
 object Fs2KafkaConsumerBuilder {
 
-  def apply[F[_]: Sync](blocker: Blocker): KafkaConsumerBuilder[F] =
-    KafkaConsumerBuilder[F](blocker,
-                            pollTimeout    = 100.millis,
-                            properties     = new Properties(),
-                            subscription   = Subscription.Empty,
-                            recordConsumer = Consumer.empty[F].orNotFound)
+  def apply[F[_]: Sync](blocker: Blocker): Fs2KafkaConsumerBuilder[F] =
+    Fs2KafkaConsumerBuilder[F](blocker,
+                               maxConcurrent  = 1,
+                               pollTimeout    = 100.millis,
+                               properties     = new Properties(),
+                               subscription   = Subscription.Empty,
+                               recordConsumer = Consumer.empty[F].orNotFound)
 }
