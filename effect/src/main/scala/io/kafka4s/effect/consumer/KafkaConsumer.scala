@@ -27,11 +27,14 @@ class KafkaConsumer[F[_]](config: KafkaConsumerConfiguration,
 
   private def commit(records: NonEmptyList[ConsumerRecord[F]]): F[Unit] =
     for {
-      offsets <- F.pure(records.toList.map { record =>
+      o <- F.pure(records.toList.map { record =>
         new TopicPartition(record.topic, record.partition) -> new OffsetAndMetadata(record.offset + 1L)
       })
-      _ <- consumer.commit(offsets.toMap)
-      _ <- logger.debug(s"Offset committed for records [${records.mkString_(", ")}]")
+      c <- consumer.commit(o.toMap).attempt
+      _ <- c.fold(
+        e => logger.error(s"Error committing offsets for records [${records.mkString_(", ")}]", e),
+        _ => logger.debug(s"Offset committed for records [${records.mkString_(", ")}]")
+      )
     } yield ()
 
   private def consume1(record: DefaultConsumerRecord): F[Return[F]] =
@@ -91,7 +94,7 @@ class KafkaConsumer[F[_]](config: KafkaConsumerConfiguration,
     } yield exitSignal.set(true) >> fiber.join
 
   private def close: F[Unit] =
-    logger.info("Stopping KafkaConsumer...")
+    logger.debug("Stopping Kafka consumer")
 
   def resource: Resource[F, Unit] =
     Resource.make(start)(close >> _).void

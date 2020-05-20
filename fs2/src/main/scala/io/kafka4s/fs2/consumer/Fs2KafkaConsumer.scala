@@ -87,7 +87,7 @@ class Fs2KafkaConsumer[F[_]] private (config: KafkaConsumerConfiguration,
       _          <- fetch.repeat.interruptWhen(exitSignal).onFinalize(close)
     } yield ()
 
-  private def close: F[Unit] = logger.debug("Stopping Fs2KafkaConsumer...") >> consumer.wakeup
+  private def close: F[Unit] = logger.debug("Stopping Kafka consumer") >> consumer.wakeup
 }
 
 object Fs2KafkaConsumer {

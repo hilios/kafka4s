@@ -29,11 +29,17 @@ class BatchKafkaConsumer[F[_]](config: KafkaConsumerConfiguration,
 
   private def commit(records: NonEmptyList[ConsumerRecord[F]]): F[Unit] =
     for {
-      offsets <- F.pure(records.toList.map { record =>
+      o <- F.pure(records.toList.map { record =>
         new TopicPartition(record.topic, record.partition) -> new OffsetAndMetadata(record.offset + 1L)
       })
-      _ <- consumer.commit(offsets.toMap)
-      _ <- logger.debug(s"Offset committed for records [${records.mkString_(",")}]")
+      o <- F.pure(records.toList.map { record =>
+        new TopicPartition(record.topic, record.partition) -> new OffsetAndMetadata(record.offset + 1L)
+      })
+      c <- consumer.commit(o.toMap).attempt
+      _ <- c.fold(
+        e => logger.error(s"Error committing offsets for records [${records.mkString_(", ")}]", e),
+        _ => logger.debug(s"Offset committed for records [${records.mkString_(", ")}]")
+      )
     } yield ()
 
   private def consumeBatch(records: NonEmptyList[DefaultConsumerRecord]): F[BatchReturn[F]] =
@@ -87,7 +93,7 @@ class BatchKafkaConsumer[F[_]](config: KafkaConsumerConfiguration,
     case Subscription.Empty          => F.unit
   }
 
-  def start: F[CancelToken[F]] =
+  private def start: F[CancelToken[F]] =
     for {
       exitSignal <- Ref.of[F, Boolean](false)
       _ <- logger.info(
@@ -96,8 +102,8 @@ class BatchKafkaConsumer[F[_]](config: KafkaConsumerConfiguration,
       fiber <- F.start(fetch(exitSignal))
     } yield exitSignal.set(true) >> fiber.join
 
-  def close: F[Unit] =
-    logger.info("Stopping BatchKafkaConsumer...")
+  private def close: F[Unit] =
+    logger.debug("Stopping Kafka batch consumer")
 
   def resource: Resource[F, Unit] =
     Resource.make(start)(close >> _).void
