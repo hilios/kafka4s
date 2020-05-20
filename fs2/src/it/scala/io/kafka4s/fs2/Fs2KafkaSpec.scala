@@ -1,22 +1,21 @@
 package io.kafka4s.fs2
 
-import cats.effect.{Blocker, Clock, ContextShift, IO, Resource, Timer}
 import cats.effect.concurrent.{Deferred, Ref}
+import cats.effect.{Blocker, Clock, ContextShift, IO, Resource, Timer}
 import cats.implicits._
 import io.kafka4s.Producer
-import io.kafka4s.syntax._
-import io.kafka4s.serdes.implicits._
 import io.kafka4s.consumer.{BatchConsumer, Consumer, ConsumerRecord}
 import io.kafka4s.effect.admin.KafkaAdminBuilder
-import io.kafka4s.effect.consumer.{BatchKafkaConsumerBuilder, KafkaConsumerBuilder}
 import io.kafka4s.effect.producer.KafkaProducerBuilder
-import io.kafka4s.fs2.consumer.Fs2KafkaConsumerBuilder
+import io.kafka4s.fs2.consumer.{Fs2BatchKafkaConsumerBuilder, Fs2KafkaConsumerBuilder}
+import io.kafka4s.serdes.implicits._
+import io.kafka4s.syntax._
 import org.apache.kafka.clients.admin.NewTopic
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should.Matchers
 
-import scala.concurrent.{ExecutionContext, TimeoutException}
 import scala.concurrent.duration._
+import scala.concurrent.{ExecutionContext, TimeoutException}
 
 class Fs2KafkaSpec extends AnyFlatSpec with Matchers { self =>
   implicit val contextShift: ContextShift[IO] = IO.contextShift(ExecutionContext.global)
@@ -82,41 +81,41 @@ class Fs2KafkaSpec extends AnyFlatSpec with Matchers { self =>
     } yield (producer, firstRecord)
   }.use(test.tupled).unsafeRunSync()
 
-//  def withMultipleRecords[A](topics: String*)(test: (Producer[IO], Ref[IO, List[ConsumerRecord[IO]]]) => IO[A]): A = {
-//    for {
-//      _       <- executionTime
-//      _       <- prepareTopics(topics)
-//      records <- Resource.liftF(Ref[IO].of(List.empty[ConsumerRecord[IO]]))
-//      _ <- KafkaConsumerBuilder[IO](blocker)
-//        .withTopics(topics.toSet)
-//        .withConsumer(Consumer.of[IO] {
-//          case Topic("fs2-boom") => IO.raiseError(new Exception("Somebody set up us the bomb"))
-//          case msg               => records.update(_ :+ msg)
-//        })
-//        .resource
-//
-//      producer <- KafkaProducerBuilder[IO].resource
-//
-//    } yield (producer, records)
-//  }.use(test.tupled).unsafeRunSync()
-//
-//  def withRecordsBatch[A](topics: String*)(test: (Producer[IO], Ref[IO, List[ConsumerRecord[IO]]]) => IO[A]): A = {
-//    for {
-//      _       <- executionTime
-//      _       <- prepareTopics(topics)
-//      records <- Resource.liftF(Ref[IO].of(List.empty[ConsumerRecord[IO]]))
-//      _ <- BatchKafkaConsumerBuilder[IO]
-//        .withTopics(topics.toSet)
-//        .withConsumer(BatchConsumer.of[IO] {
-//          case BatchTopic("fs2-boom") => IO.raiseError(new Exception("Somebody set up us the bomb"))
-//          case batch                  => records.update(_ ++ batch.toList)
-//        })
-//        .resource
-//
-//      producer <- KafkaProducerBuilder[IO].resource
-//
-//    } yield (producer, records)
-//  }.use(test.tupled).unsafeRunSync()
+  def withMultipleRecords[A](topics: String*)(test: (Producer[IO], Ref[IO, List[ConsumerRecord[IO]]]) => IO[A]): A = {
+    for {
+      _       <- executionTime
+      _       <- prepareTopics(topics)
+      records <- Resource.liftF(Ref[IO].of(List.empty[ConsumerRecord[IO]]))
+      _ <- Fs2KafkaConsumerBuilder[IO](blocker)
+        .withTopics(topics.toSet)
+        .withConsumer(Consumer.of[IO] {
+          case Topic("fs2-boom") => IO.raiseError(new Exception("Somebody set up us the bomb"))
+          case msg               => records.update(_ :+ msg)
+        })
+        .resource
+
+      producer <- KafkaProducerBuilder[IO].resource
+
+    } yield (producer, records)
+  }.use(test.tupled).unsafeRunSync()
+
+  def withRecordsBatch[A](topics: String*)(test: (Producer[IO], Ref[IO, List[ConsumerRecord[IO]]]) => IO[A]): A = {
+    for {
+      _       <- executionTime
+      _       <- prepareTopics(topics)
+      records <- Resource.liftF(Ref[IO].of(List.empty[ConsumerRecord[IO]]))
+      _ <- Fs2BatchKafkaConsumerBuilder[IO](blocker)
+        .withTopics(topics.toSet)
+        .withConsumer(BatchConsumer.of[IO] {
+          case BatchTopic("fs2-boom") => IO.raiseError(new Exception("Somebody set up us the bomb"))
+          case batch                  => records.update(_ ++ batch.toList)
+        })
+        .resource
+
+      producer <- KafkaProducerBuilder[IO].resource
+
+    } yield (producer, records)
+  }.use(test.tupled).unsafeRunSync()
 
   behavior of "Fs2KafkaConsumer"
 
@@ -135,4 +134,89 @@ class Fs2KafkaSpec extends AnyFlatSpec with Matchers { self =>
       value shouldBe "bar"
     }
   }
+
+  it should "should produce and consume multiple messages" in withMultipleRecords(topics = foo) { (producer, records) =>
+    for {
+      _ <- (1 to 100).toList.traverse(n => producer.send(foo, value = s"bar #$n"))
+      _ <- waitUntil(30.seconds) {
+        records.get.map(_.length == 100)
+      }
+      len    <- records.get.map(_.length)
+      record <- records.get.flatMap(l => IO(l.last))
+      topic = record.topic
+      key   <- record.key[Option[Int]]
+      value <- record.as[String]
+    } yield {
+      len shouldBe 100
+      topic shouldBe foo
+      key shouldBe None
+      value shouldBe "bar #100"
+    }
+  }
+
+  it should "should not stop consuming even if there is an exception in the consumer" in
+    withMultipleRecords(topics = foo, boom) { (producer, records) =>
+      for {
+        _ <- (1 to 50).toList.traverse(n => producer.send(foo, value = s"bar #$n"))
+        _ <- producer.send(boom, value = "All your base are belong to us.")
+        _ <- (51 to 100).toList.traverse(n => producer.send(foo, value = s"bar #$n"))
+        _ <- waitUntil(30.seconds) {
+          records.get.map(_.length == 100)
+        }
+        len    <- records.get.map(_.length)
+        record <- records.get.flatMap(l => IO(l.last))
+        topic = record.topic
+        key   <- record.key[Option[Int]]
+        value <- record.as[String]
+      } yield {
+        len shouldBe 100
+        topic shouldBe foo
+        key shouldBe None
+        value shouldBe "bar #100"
+      }
+    }
+
+  behavior of "Fs2BatchKafkaConsumer"
+
+  it should "should produce and consume batch of messages" in
+    withRecordsBatch(topics = foo) { (producer, records) =>
+      for {
+        _ <- (1 to 100).toList.traverse(n => producer.send(foo, value = s"bar #$n"))
+        _ <- waitUntil(30.seconds) {
+          records.get.map(_.length == 100)
+        }
+        len    <- records.get.map(_.length)
+        record <- records.get.flatMap(l => IO(l.last))
+        topic = record.topic
+        key   <- record.key[Option[Int]]
+        value <- record.as[String]
+      } yield {
+        len shouldBe 100
+        topic shouldBe foo
+        key shouldBe None
+        value shouldBe "bar #100"
+      }
+    }
+
+  it should "should not stop consuming even if there is an exception in the consumer" in
+    withRecordsBatch(topics = foo, boom) { (producer, records) =>
+      for {
+        _ <- (1 to 50).toList.traverse(n => producer.send(foo, value = s"bar #$n"))
+        _ <- producer.send(boom, value = "All your base are belong to us.")
+        _ <- (51 to 100).toList.traverse(n => producer.send(foo, value = s"bar #$n"))
+        _ <- waitUntil(30.seconds) {
+          records.get.map(_.length == 100)
+        }
+        len    <- records.get.map(_.length)
+        record <- records.get.flatMap(l => IO(l.last))
+        topic = record.topic
+        key   <- record.key[Option[Int]]
+        value <- record.as[String]
+      } yield {
+        len shouldBe 100
+        topic shouldBe foo
+        key shouldBe None
+        value shouldBe "bar #100"
+      }
+    }
 }

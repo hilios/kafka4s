@@ -1,9 +1,11 @@
 package io.kafka4s.fs2.consumer
 
+import cats.data.NonEmptyList
 import cats.effect.{Concurrent, ConcurrentEffect, ContextShift, Timer}
 import cats.implicits._
+import fs2.Stream
 import fs2.concurrent.SignallingRef
-import fs2.{Chunk, Stream}
+import io.kafka4s.BatchRecordConsumer
 import io.kafka4s.consumer._
 import io.kafka4s.effect.consumer._
 import io.kafka4s.effect.consumer.config._
@@ -15,18 +17,20 @@ import org.apache.kafka.common.{KafkaException, TopicPartition}
 import scala.concurrent.duration._
 import scala.util.Random
 
-class Fs2KafkaConsumer[F[_]] private (config: KafkaConsumerConfiguration,
-                                      consumer: ConsumerEffect[F],
-                                      logger: Logger[F],
-                                      maxConcurrent: Int,
-                                      pollTimeout: FiniteDuration,
-                                      subscription: Subscription,
-                                      recordConsumer: RecordConsumer[F])(implicit F: Concurrent[F], T: Timer[F]) {
+class Fs2BatchKafkaConsumer[F[_]] private (
+  config: KafkaConsumerConfiguration,
+  consumer: ConsumerEffect[F],
+  logger: Logger[F],
+  maxConcurrent: Int,
+  pollTimeout: FiniteDuration,
+  subscription: Subscription,
+  batchConsumer: BatchRecordConsumer[F]
+)(implicit F: Concurrent[F], T: Timer[F]) {
 
   private val maxAttempts = 10
   private val maxDelay    = pollTimeout
 
-  private def commit(records: Chunk[ConsumerRecord[F]]): F[Unit] =
+  private def commit(records: NonEmptyList[ConsumerRecord[F]]): F[Unit] =
     for {
       o <- F.pure(records.toList.map { record =>
         new TopicPartition(record.topic, record.partition) -> new OffsetAndMetadata(record.offset + 1L)
@@ -38,12 +42,12 @@ class Fs2KafkaConsumer[F[_]] private (config: KafkaConsumerConfiguration,
       )
     } yield ()
 
-  private def consume1(record: DefaultConsumerRecord): F[Return[F]] =
+  private def consumeBatch(records: NonEmptyList[DefaultConsumerRecord]): F[BatchReturn[F]] =
     for {
-      r <- recordConsumer.apply(ConsumerRecord[F](record))
+      r <- batchConsumer.apply(records.map(ConsumerRecord[F]))
       _ <- r match {
-        case Return.Ack(r)     => logger.debug(s"Record [${r.show}] processed successfully")
-        case Return.Err(r, ex) => logger.error(s"Error processing [${r.show}]", ex)
+        case BatchReturn.Ack(r)     => logger.debug(s"Records [${r.mkString_(",")}] processed successfully")
+        case BatchReturn.Err(r, ex) => logger.error(s"Error processing [${r.mkString_(",")}]", ex)
       }
     } yield r
 
@@ -62,13 +66,17 @@ class Fs2KafkaConsumer[F[_]] private (config: KafkaConsumerConfiguration,
         maxAttempts = maxAttempts,
         _.isInstanceOf[KafkaException]
       )
-      r <- Stream
+      b <- Stream
         .fromIterator(p)
-        .parEvalMap(maxConcurrent)(consume1)
-        .filter(_.isInstanceOf[Return.Ack[F]])
-        .map(_.record)
-        .chunks
-      _ <- Stream.eval(commit(r))
+        .groupAdjacentBy(_.topic())
+        .map(_._2.toNel)
+        .collect {
+          case Some(i) => i
+        }
+        .parEvalMap(maxConcurrent)(consumeBatch)
+        .filter(_.isInstanceOf[BatchReturn.Ack[F]])
+        .map(_.records)
+      _ <- Stream.eval(commit(b))
     } yield ()
 
   private def subscribe: F[Unit] =
@@ -78,23 +86,23 @@ class Fs2KafkaConsumer[F[_]] private (config: KafkaConsumerConfiguration,
       case Subscription.Empty          => F.unit
     }
 
-  private def close: F[Unit] = logger.debug("Stopping Kafka consumer") >> consumer.wakeup
+  private def close: F[Unit] = logger.debug("Stopping Kafka batch consumer") >> consumer.wakeup
 
   def stream: Stream[F, Unit] =
     for {
       _ <- Stream.eval(logger.info(
-        s"Fs2KafkaConsumer connecting to [${config.bootstrapServers.mkString(",")}] with group id [${config.groupId}]"))
+        s"Fs2BatchKafkaConsumer connecting to [${config.bootstrapServers.mkString(",")}] with group id [${config.groupId}]"))
       _          <- Stream.eval(subscribe)
       exitSignal <- Stream.eval(SignallingRef[F, Boolean](false))
       _          <- fetch.repeat.interruptWhen(exitSignal).onFinalize(close)
     } yield ()
 }
 
-object Fs2KafkaConsumer {
+object Fs2BatchKafkaConsumer {
 
-  def apply[F[_]](builder: Fs2KafkaConsumerBuilder[F])(implicit F: ConcurrentEffect[F],
-                                                       T: Timer[F],
-                                                       CS: ContextShift[F]): Stream[F, Unit] =
+  def apply[F[_]](builder: Fs2BatchKafkaConsumerBuilder[F])(implicit F: ConcurrentEffect[F],
+                                                            T: Timer[F],
+                                                            CS: ContextShift[F]): Stream[F, Unit] =
     for {
       config <- Stream.eval(F.fromEither {
         if (builder.properties.isEmpty) KafkaConsumerConfiguration.load
@@ -110,14 +118,15 @@ object Fs2KafkaConsumer {
         p
       })
       consumer <- Stream.resource(ConsumerEffect.resource[F](properties, builder.blocker))
-      logger   <- Stream.eval(Slf4jLogger[F].of[Fs2KafkaConsumer[Any]])
-      c = new Fs2KafkaConsumer[F](config,
-                                  consumer,
-                                  logger,
-                                  builder.maxConcurrent,
-                                  builder.pollTimeout,
-                                  builder.subscription,
-                                  builder.recordConsumer)
+      logger   <- Stream.eval(Slf4jLogger[F].of[Fs2BatchKafkaConsumer[Any]])
+      c = new Fs2BatchKafkaConsumer[F](config,
+                                       consumer,
+                                       logger,
+                                       builder.maxConcurrent,
+                                       builder.pollTimeout,
+                                       builder.subscription,
+                                       builder.recordConsumer)
       _ <- c.stream
     } yield ()
+
 }
