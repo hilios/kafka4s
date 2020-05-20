@@ -91,9 +91,9 @@ class Fs2KafkaConsumer[F[_]] private (config: KafkaConsumerConfiguration,
 
 object Fs2KafkaConsumer {
 
-  def apply[F[_]](builder: KafkaConsumerBuilder[F])(implicit F: ConcurrentEffect[F],
-                                                    T: Timer[F],
-                                                    CS: ContextShift[F]): Stream[F, Unit] =
+  def apply[F[_]](builder: Fs2KafkaConsumerBuilder[F])(implicit F: ConcurrentEffect[F],
+                                                       T: Timer[F],
+                                                       CS: ContextShift[F]): Stream[F, Unit] =
     for {
       config <- Stream.eval(F.fromEither {
         if (builder.properties.isEmpty) KafkaConsumerConfiguration.load
@@ -113,7 +113,7 @@ object Fs2KafkaConsumer {
       c = new Fs2KafkaConsumer[F](config,
                                   consumer,
                                   logger,
-                                  maxConcurrent = 2,
+                                  builder.maxConcurrent,
                                   builder.pollTimeout,
                                   builder.subscription,
                                   builder.recordConsumer)
