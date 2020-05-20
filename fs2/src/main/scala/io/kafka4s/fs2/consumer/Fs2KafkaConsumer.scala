@@ -84,9 +84,10 @@ class Fs2KafkaConsumer[F[_]] private (config: KafkaConsumerConfiguration,
         s"Fs2KafkaConsumer connecting to [${config.bootstrapServers.mkString(",")}] with group id [${config.groupId}]"))
       _          <- Stream.eval(subscribe)
       exitSignal <- Stream.eval(SignallingRef[F, Boolean](false))
-      _          <- fetch.repeat.interruptWhen(exitSignal).onFinalize(consumer.wakeup)
-      _          <- Stream.eval(logger.info("Stopping Fs2KafkaConsumer..."))
+      _          <- fetch.repeat.interruptWhen(exitSignal).onFinalize(close)
     } yield ()
+
+  private def close: F[Unit] = logger.debug("Stopping Fs2KafkaConsumer...") >> consumer.wakeup
 }
 
 object Fs2KafkaConsumer {

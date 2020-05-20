@@ -52,7 +52,7 @@ case class Fs2KafkaConsumerBuilder[F[_]](blocker: Blocker,
     Fs2KafkaConsumer[F](builder = this)
 
   def resource(implicit F: ConcurrentEffect[F], T: Timer[F], CS: ContextShift[F]): Resource[F, Unit] =
-    stream.compile.resource.drain
+    stream.compile.resource.lastOrError
 
   def serve(implicit F: ConcurrentEffect[F], T: Timer[F], CS: ContextShift[F]): F[Unit] =
     stream.compile.drain
