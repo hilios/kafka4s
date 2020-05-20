@@ -32,9 +32,6 @@ class BatchKafkaConsumer[F[_]](config: KafkaConsumerConfiguration,
       o <- F.pure(records.toList.map { record =>
         new TopicPartition(record.topic, record.partition) -> new OffsetAndMetadata(record.offset + 1L)
       })
-      o <- F.pure(records.toList.map { record =>
-        new TopicPartition(record.topic, record.partition) -> new OffsetAndMetadata(record.offset + 1L)
-      })
       c <- consumer.commit(o.toMap).attempt
       _ <- c.fold(
         e => logger.error(s"Error committing offsets for records [${records.mkString_(", ")}]", e),
