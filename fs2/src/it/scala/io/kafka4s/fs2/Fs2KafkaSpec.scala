@@ -68,16 +68,14 @@ class Fs2KafkaSpec extends AnyFlatSpec with Matchers { self =>
       _           <- executionTime
       _           <- prepareTopics(topics)
       firstRecord <- Resource.liftF(Deferred[IO, ConsumerRecord[IO]])
-      _ <- Fs2KafkaConsumerBuilder[IO](blocker)
+      consumer = Fs2KafkaConsumerBuilder[IO](blocker)
         .withTopics(topics: _*)
         .withConsumer(Consumer.of[IO] {
           case Topic("fs2-boom") => IO.raiseError(new Exception("Somebody set up us the bomb"))
           case msg               => firstRecord.complete(msg)
         })
-        .resource
-
+      _        <- Resource.make(consumer.serve.start)(c => c.cancel)
       producer <- KafkaProducerBuilder[IO].resource
-
     } yield (producer, firstRecord)
   }.use(test.tupled).unsafeRunSync()
 
@@ -86,16 +84,14 @@ class Fs2KafkaSpec extends AnyFlatSpec with Matchers { self =>
       _       <- executionTime
       _       <- prepareTopics(topics)
       records <- Resource.liftF(Ref[IO].of(List.empty[ConsumerRecord[IO]]))
-      _ <- Fs2KafkaConsumerBuilder[IO](blocker)
-        .withTopics(topics.toSet)
+      consumer = Fs2KafkaConsumerBuilder[IO](blocker)
+        .withTopics(topics: _*)
         .withConsumer(Consumer.of[IO] {
           case Topic("fs2-boom") => IO.raiseError(new Exception("Somebody set up us the bomb"))
           case msg               => records.update(_ :+ msg)
         })
-        .resource
-
+      _        <- Resource.make(consumer.serve.start)(c => c.cancel)
       producer <- KafkaProducerBuilder[IO].resource
-
     } yield (producer, records)
   }.use(test.tupled).unsafeRunSync()
 
@@ -104,16 +100,14 @@ class Fs2KafkaSpec extends AnyFlatSpec with Matchers { self =>
       _       <- executionTime
       _       <- prepareTopics(topics)
       records <- Resource.liftF(Ref[IO].of(List.empty[ConsumerRecord[IO]]))
-      _ <- Fs2BatchKafkaConsumerBuilder[IO](blocker)
-        .withTopics(topics.toSet)
+      consumer = Fs2BatchKafkaConsumerBuilder[IO](blocker)
+        .withTopics(topics: _*)
         .withConsumer(BatchConsumer.of[IO] {
           case BatchTopic("fs2-boom") => IO.raiseError(new Exception("Somebody set up us the bomb"))
           case batch                  => records.update(_ ++ batch.toList)
         })
-        .resource
-
+      _        <- Resource.make(consumer.serve.start)(c => c.cancel)
       producer <- KafkaProducerBuilder[IO].resource
-
     } yield (producer, records)
   }.use(test.tupled).unsafeRunSync()
 
@@ -122,7 +116,7 @@ class Fs2KafkaSpec extends AnyFlatSpec with Matchers { self =>
   it should "should produce and consume messages" in withSingleRecord(topics = foo) { (producer, maybeMessage) =>
     for {
       _ <- producer.send(foo, key = 1, value = "bar")
-      record <- waitFor(60.seconds) {
+      record <- waitFor(30.seconds) {
         maybeMessage.get
       }
       topic = record.topic

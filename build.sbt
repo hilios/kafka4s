@@ -52,8 +52,6 @@ lazy val fs2 = project.in(file("fs2"))
     commonSettings,
     libraryDependencies ++= Seq(
       Dependencies.fs2 % Provided,
-      Dependencies.config,
-      Dependencies.slf4j,
       Dependencies.logback % IntegrationTest,
       Dependencies.scalaTest % IntegrationTest,
     )
