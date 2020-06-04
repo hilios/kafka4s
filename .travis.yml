@@ -8,7 +8,7 @@ before_script:
 script:
   - sbt ++$TRAVIS_SCALA_VERSION test
   - sbt ++$TRAVIS_SCALA_VERSION it:test
-after_failure:
-  - docker-compose logs
+#after_failure:
+#  - docker-compose logs
 after_script:
   - docker-compose rm -f
