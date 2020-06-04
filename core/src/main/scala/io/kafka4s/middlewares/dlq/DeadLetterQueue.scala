@@ -40,4 +40,16 @@ object DeadLetterQueue {
   def apply[F[_]: MonadError[*[_], Throwable]](producer: Producer[F], dlq: DeadLetter[F])(
     consumer: Consumer[F]): Consumer[F] =
     new DeadLetterQueue[F](producer, dlq).forConsumer(consumer)
+
+  object Batch {
+
+    def apply[F[_]: MonadError[*[_], Throwable]](producer: Producer[F], topicSuffix: String = "-dlq")(
+      consumer: BatchConsumer[F]): BatchConsumer[F] =
+      new DeadLetterQueue(producer, DeadLetter[F](topicSuffix))
+        .forBatchConsumer(consumer)
+
+    def apply[F[_]: MonadError[*[_], Throwable]](producer: Producer[F], dlq: DeadLetter[F])(
+      consumer: BatchConsumer[F]): BatchConsumer[F] =
+      new DeadLetterQueue[F](producer, dlq).forBatchConsumer(consumer)
+  }
 }

@@ -1,12 +1,12 @@
 package io.kafka4s.middlewares.dlq
 
-import cats.data.Kleisli
+import cats.data.{Kleisli, NonEmptyList}
 import cats.implicits._
 import io.kafka4s.common.Record
-import io.kafka4s.consumer.{Consumer, ConsumerRecord, Return => ConsumerReturn}
+import io.kafka4s.consumer.{Consumer, ConsumerRecord, batch, Return => ConsumerReturn}
+import io.kafka4s.dsl._
 import io.kafka4s.implicits._
 import io.kafka4s.producer.{Producer, ProducerRecord, Return => ProducerReturn}
-import io.kafka4s.dsl._
 import io.kafka4s.test.UnitSpec
 
 class DeadLetterQueueSpec extends UnitSpec { self =>
@@ -28,6 +28,11 @@ class DeadLetterQueueSpec extends UnitSpec { self =>
   val consumer = Consumer.of[Test] {
     case Topic("boom") => Either.catchNonFatal(throw new Error("Boom!")).void
     case _             => Right(())
+  }
+
+  val batchConsumer = batch.BatchConsumer.of[Test] {
+    case batch.dsl.Topic("boom") => Either.catchNonFatal(throw new Error("Boom!")).void
+    case _                       => Right(())
   }
 
   def eitherTest[A](fa: Test[A]): A = {
@@ -100,4 +105,27 @@ class DeadLetterQueueSpec extends UnitSpec { self =>
     }
   }
 
+  ".Batch" should
+    """|recover from a error in the original batch consumer by producing dead letters messages
+       |containing the exception message and stack trace in the headers for each message in the batch
+       |""".stripMargin in eitherTest {
+    val dlq = DeadLetterQueue.Batch(producer)(batchConsumer).orNotFound
+    send1
+      .expects(where { record: ProducerRecord[Test] =>
+        record.topic.endsWith("-dlq") &&
+        record.header[String]("X-Exception-Message") == Right(Some("Error: Boom!")) &&
+        record.header[String]("X-Stack-Trace").map(_.nonEmpty) == Right(true)
+      })
+      .returns(())
+      .twice()
+
+    for {
+      record1 <- ConsumerRecord.of[Test]("boom" -> "I will be back")
+      record2 <- ConsumerRecord.of[Test]("boom" -> "You are terminated!")
+      records = NonEmptyList.of(record1, record2)
+      ack <- dlq.apply(records)
+    } yield {
+      ack shouldBe batch.BatchReturn.Ack(records)
+    }
+  }
 }
