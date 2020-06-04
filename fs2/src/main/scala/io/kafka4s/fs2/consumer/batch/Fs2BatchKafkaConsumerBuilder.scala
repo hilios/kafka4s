@@ -13,6 +13,7 @@ import scala.concurrent.duration._
 import scala.util.matching.Regex
 
 case class Fs2BatchKafkaConsumerBuilder[F[_]](blocker: Blocker,
+                                              maxBatchSize: Int,
                                               maxConcurrent: Int,
                                               pollTimeout: FiniteDuration,
                                               properties: Properties,
@@ -45,6 +46,9 @@ case class Fs2BatchKafkaConsumerBuilder[F[_]](blocker: Blocker,
   def withConsumer(consumer: BatchRecordConsumer[F]): Self =
     copy(recordConsumer = consumer)
 
+  def withMaxBatchSize(maxBatchSize: Int) =
+    copy(maxBatchSize = maxBatchSize)
+
   def withMaxConcurrency(maxConcurrent: Int) =
     copy(maxConcurrent = maxConcurrent)
 
@@ -63,6 +67,7 @@ object Fs2BatchKafkaConsumerBuilder {
   def apply[F[_]: Sync](blocker: Blocker): Fs2BatchKafkaConsumerBuilder[F] =
     Fs2BatchKafkaConsumerBuilder[F](
       blocker,
+      maxBatchSize   = Int.MaxValue,
       maxConcurrent  = 1,
       pollTimeout    = 100.millis,
       properties     = new Properties(),

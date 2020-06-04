@@ -22,12 +22,14 @@ class Fs2BatchKafkaConsumer[F[_]] private (
   config: KafkaConsumerConfiguration,
   consumer: ConsumerEffect[F],
   logger: Logger[F],
+  maxBatchSize: Int,
   maxConcurrent: Int,
   pollTimeout: FiniteDuration,
   subscription: Subscription,
   batchConsumer: BatchRecordConsumer[F]
 )(implicit F: Concurrent[F], T: Timer[F]) {
 
+  // TODO: Parametrize
   private val maxAttempts = 10
   private val maxDelay    = pollTimeout
 
@@ -69,7 +71,7 @@ class Fs2BatchKafkaConsumer[F[_]] private (
       )
       b <- Stream
         .fromIterator(p)
-        .groupAdjacentBy(_.topic())
+        .groupAdjacentByLimit(maxBatchSize)(_.topic())
         .map(_._2.toNel)
         .collect {
           case Some(i) => i
@@ -123,6 +125,7 @@ object Fs2BatchKafkaConsumer {
       c = new Fs2BatchKafkaConsumer[F](config,
                                        consumer,
                                        logger,
+                                       builder.maxBatchSize,
                                        builder.maxConcurrent,
                                        builder.pollTimeout,
                                        builder.subscription,

@@ -48,8 +48,6 @@ class Fs2KafkaConsumerSpec extends IntegrationSpec {
     } yield (producer, records)
   }.use(test.tupled).unsafeRunSync()
 
-  behavior of "Fs2KafkaConsumer"
-
   it should "should produce and consume messages" in withSingleRecord(topics = foo) { (producer, maybeMessage) =>
     for {
       _ <- producer.send(foo, key = 1, value = "bar")

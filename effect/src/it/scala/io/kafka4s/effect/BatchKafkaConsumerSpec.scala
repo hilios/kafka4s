@@ -13,7 +13,7 @@ import io.kafka4s.implicits._
 
 import scala.concurrent.duration._
 
-class BatchKafkaSpec extends IntegrationSpec {
+class BatchKafkaConsumerSpec extends IntegrationSpec {
 
   val foo  = "foo"
   val boom = "boom"

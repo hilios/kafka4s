@@ -26,15 +26,13 @@ class Fs2BatchKafkaConsumerSpec extends IntegrationSpec {
       consumer = Fs2BatchKafkaConsumerBuilder[IO](blocker)
         .withTopics(topics: _*)
         .withConsumer(BatchConsumer.of[IO] {
-          case Topic("fs2-boom") => IO.raiseError(new Exception("Somebody set up us the bomb"))
-          case batch             => records.update(_ ++ batch.toList)
+          case Topic("fs2-batch-boom") => IO.raiseError(new Exception("Somebody set up us the bomb"))
+          case batch                   => records.update(_ ++ batch.toList)
         })
       _        <- Resource.make(consumer.serve.start)(c => c.cancel)
       producer <- KafkaProducerBuilder[IO].resource
     } yield (producer, records)
   }.use(test.tupled).unsafeRunSync()
-
-  behavior of "Fs2BatchKafkaConsumer"
 
   it should "should produce and consume batch of messages" in
     withBatchConsumer(topics = foo) { (producer, records) =>
@@ -64,6 +62,8 @@ class Fs2BatchKafkaConsumerSpec extends IntegrationSpec {
         _ <- (51 to 100).toList.traverse(n => producer.send(foo, value = s"bar #$n"))
         _ <- waitUntil(30.seconds) {
           records.get.map(_.length == 100)
+        }.recoverWith {
+          case ex => records.get.flatMap(l => IO(info(s"> ${l.length}"))) >> IO.raiseError(ex)
         }
         len    <- records.get.map(_.length)
         record <- records.get.flatMap(l => IO(l.last))

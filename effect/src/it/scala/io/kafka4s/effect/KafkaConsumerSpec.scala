@@ -12,7 +12,7 @@ import io.kafka4s.implicits._
 
 import scala.concurrent.duration._
 
-class KafkaSpec extends IntegrationSpec {
+class KafkaConsumerSpec extends IntegrationSpec {
 
   val foo  = "foo"
   val boom = "boom"
@@ -52,8 +52,6 @@ class KafkaSpec extends IntegrationSpec {
 
     } yield (producer, records)
   }.use(test.tupled).unsafeRunSync()
-
-  behavior of "KafkaConsumer"
 
   it should "should produce and consume messages" in withSingleRecord(topics = foo) { (producer, maybeMessage) =>
     for {
