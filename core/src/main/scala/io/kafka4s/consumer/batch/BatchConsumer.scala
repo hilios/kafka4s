@@ -1,8 +1,8 @@
-package io.kafka4s.consumer
+package io.kafka4s.consumer.batch
 
 import cats.data.{Kleisli, NonEmptyList, OptionT}
 import cats.{ApplicativeError, Monad}
-import io.kafka4s.consumer.BatchReturn.{Ack, Err}
+import io.kafka4s.consumer.{ConsumerRecord, TopicNotFound}
 
 import scala.util.control.NonFatal
 
@@ -15,15 +15,15 @@ object BatchConsumer {
     BatchConsumer.of[F](PartialFunction.empty)
 
   private[kafka4s] def notFoundErr[F[_]](records: NonEmptyList[ConsumerRecord[F]]): BatchReturn[F] =
-    Err(records, TopicNotFound(records.head.topic))
+    BatchReturn.Err(records, TopicNotFound(records.head.topic))
 
   private[kafka4s] def orNotFound[F[_]](
     consumer: BatchConsumer[F]
   )(implicit F: ApplicativeError[F, Throwable]): BatchRecordConsumer[F] =
     Kleisli(
       records =>
-        F.recover(consumer(records).fold[BatchReturn[F]](notFoundErr(records))(_ => Ack(records))) {
-          case NonFatal(ex) => Err(records, ex)
-        }
+        F.recover(consumer(records).fold[BatchReturn[F]](notFoundErr(records))(_ => BatchReturn.Ack(records))) {
+          case NonFatal(ex) => BatchReturn.Err(records, ex)
+      }
     )
 }

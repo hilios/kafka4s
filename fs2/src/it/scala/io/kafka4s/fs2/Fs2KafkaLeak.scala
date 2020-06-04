@@ -4,7 +4,7 @@ import cats.effect.{Blocker, ExitCode, IO, IOApp, Resource}
 import cats.implicits._
 import io.kafka4s.consumer.Consumer
 import io.kafka4s.effect.admin.KafkaAdminBuilder
-import io.kafka4s.effect.log.impl.Slf4jLogger
+import io.kafka4s.effect.log.slf4j.Slf4jLogger
 import io.kafka4s.effect.producer.KafkaProducerBuilder
 import io.kafka4s.fs2.consumer.{Fs2KafkaConsumer, Fs2KafkaConsumerBuilder}
 import io.kafka4s.serdes.implicits._

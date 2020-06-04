@@ -1,4 +1,4 @@
-package io.kafka4s.effect.consumer
+package io.kafka4s.effect.consumer.batch
 
 import java.util.concurrent.Executors
 
@@ -7,10 +7,12 @@ import cats.effect.concurrent.Ref
 import cats.effect.{Blocker, CancelToken, Concurrent, ConcurrentEffect, ContextShift, Resource, Timer}
 import cats.implicits._
 import io.kafka4s.BatchRecordConsumer
-import io.kafka4s.consumer.{BatchReturn, ConsumerRecord, DefaultConsumerRecord, Subscription}
+import io.kafka4s.consumer.batch.BatchReturn
+import io.kafka4s.consumer.{ConsumerRecord, DefaultConsumerRecord, Subscription}
+import io.kafka4s.effect.consumer.ConsumerEffect
 import io.kafka4s.effect.consumer.config.KafkaConsumerConfiguration
 import io.kafka4s.effect.log.Logger
-import io.kafka4s.effect.log.impl.Slf4jLogger
+import io.kafka4s.effect.log.slf4j.Slf4jLogger
 import org.apache.kafka.clients.consumer.{ConsumerConfig, OffsetAndMetadata}
 import org.apache.kafka.common.{KafkaException, TopicPartition}
 
@@ -129,7 +131,7 @@ object BatchKafkaConsumer {
       es <- Resource.make(F.delay(Executors.newCachedThreadPool()))(e => F.delay(e.shutdown()))
       blocker = Blocker.liftExecutorService(es)
       consumer <- Resource.make(ConsumerEffect[F](properties, blocker))(c => c.wakeup >> c.close())
-      logger   <- Resource.liftF(Slf4jLogger[F].of[BatchKafkaConsumer[Any]])
+      logger   <- Resource.liftF(Slf4jLogger[F].ofT[BatchKafkaConsumer])
       c = new BatchKafkaConsumer[F](config,
                                     consumer,
                                     logger,

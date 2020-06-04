@@ -1,10 +1,11 @@
-package io.kafka4s.consumer
+package io.kafka4s.consumer.batch
 
 import cats.Id
 import cats.data.NonEmptyList
 import cats.implicits._
+import io.kafka4s.consumer.batch.dsl._
+import io.kafka4s.consumer.{ConsumerRecord, TopicNotFound}
 import io.kafka4s.implicits._
-import io.kafka4s.syntax._
 import io.kafka4s.test.UnitSpec
 
 class BatchConsumerSpec extends UnitSpec {
@@ -16,7 +17,7 @@ class BatchConsumerSpec extends UnitSpec {
 
   "$.of" should "wrap a partial function in a Kleisli that may consume a record" in {
     val consumer: BatchConsumer[Id] = BatchConsumer.of[Id] {
-      case BatchTopic("my-topic") => ()
+      case Topic("my-topic") => ()
     }
 
     for {
@@ -39,7 +40,7 @@ class BatchConsumerSpec extends UnitSpec {
   "#orNotFound" should "transform the Consumer in a total function that lifts the record in a Return" in {
     val consumer = BatchConsumer
       .of[Id] {
-        case BatchTopic("hello-topic") => ()
+        case Topic("hello-topic") => ()
       }
       .orNotFound
 
@@ -60,7 +61,7 @@ class BatchConsumerSpec extends UnitSpec {
 
     val consumer = BatchConsumer
       .of[Test] {
-        case BatchTopic("boom") => Left(ex)
+        case Topic("boom") => Left(ex)
       }
       .orNotFound
 

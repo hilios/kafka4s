@@ -8,7 +8,7 @@ import io.kafka4s.consumer._
 import io.kafka4s.effect.consumer._
 import io.kafka4s.effect.consumer.config._
 import io.kafka4s.effect.log._
-import io.kafka4s.effect.log.impl.Slf4jLogger
+import io.kafka4s.effect.log.slf4j.Slf4jLogger
 import org.apache.kafka.clients.consumer.{ConsumerConfig, OffsetAndMetadata}
 import org.apache.kafka.common.{KafkaException, TopicPartition}
 
@@ -110,7 +110,7 @@ object Fs2KafkaConsumer {
         p
       })
       consumer <- Stream.resource(ConsumerEffect.resource[F](properties, builder.blocker))
-      logger   <- Stream.eval(Slf4jLogger[F].of[Fs2KafkaConsumer[Any]])
+      logger   <- Stream.eval(Slf4jLogger[F].ofT[Fs2KafkaConsumer])
       c = new Fs2KafkaConsumer[F](config,
                                   consumer,
                                   logger,

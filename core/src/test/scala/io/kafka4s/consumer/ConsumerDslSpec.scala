@@ -4,10 +4,10 @@ import cats.Id
 import cats.data.NonEmptyList
 import io.kafka4s.common.{Header, Headers}
 import io.kafka4s.implicits._
-import io.kafka4s.syntax._
+import io.kafka4s.dsl._
 import io.kafka4s.test.UnitSpec
 
-class ConsumerSyntaxSpec extends UnitSpec {
+class ConsumerDslSpec extends UnitSpec {
 
   val header = Header.of[Id]("foo" -> "bar")
 
@@ -58,11 +58,6 @@ class ConsumerSyntaxSpec extends UnitSpec {
     name shouldBe record.topic
     partition shouldBe record.partition
     offset shouldBe record.offset
-  }
-
-  "BatchTopic(name)" should "extract the topic name from a non empty list of consumer records" in {
-    val BatchTopic(name) = NonEmptyList.one(record)
-    name shouldBe record.topic
   }
 
   behavior of ":?"

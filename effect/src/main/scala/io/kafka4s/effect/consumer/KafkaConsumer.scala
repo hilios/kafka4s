@@ -8,7 +8,7 @@ import io.kafka4s.RecordConsumer
 import io.kafka4s.consumer.{ConsumerRecord, DefaultConsumerRecord, Return, Subscription}
 import io.kafka4s.effect.consumer.config.KafkaConsumerConfiguration
 import io.kafka4s.effect.log.Logger
-import io.kafka4s.effect.log.impl.Slf4jLogger
+import io.kafka4s.effect.log.slf4j.Slf4jLogger
 import org.apache.kafka.clients.consumer.{ConsumerConfig, OffsetAndMetadata}
 import org.apache.kafka.common.{KafkaException, TopicPartition}
 
@@ -120,7 +120,7 @@ object KafkaConsumer {
         p
       })
       consumer <- ConsumerEffect.resource[F](properties, builder.blocker)
-      logger   <- Resource.liftF(Slf4jLogger[F].of[KafkaConsumer[Any]])
+      logger   <- Resource.liftF(Slf4jLogger[F].ofT[KafkaConsumer])
       c = new KafkaConsumer[F](config,
                                consumer,
                                logger,

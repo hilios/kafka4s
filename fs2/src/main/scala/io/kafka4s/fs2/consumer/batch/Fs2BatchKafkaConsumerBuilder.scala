@@ -1,11 +1,12 @@
-package io.kafka4s.fs2.consumer
+package io.kafka4s.fs2.consumer.batch
 
 import java.util.Properties
 
 import cats.ApplicativeError
 import cats.effect.{Blocker, ConcurrentEffect, ContextShift, Resource, Sync, Timer}
 import fs2.Stream
-import io.kafka4s.consumer.{BatchConsumer, BatchRecordConsumer, Subscription}
+import io.kafka4s.consumer.Subscription
+import io.kafka4s.consumer.batch._
 import io.kafka4s.effect.properties.implicits._
 
 import scala.concurrent.duration._

@@ -1,11 +1,10 @@
-package io.kafka4s.effect.log.impl
+package io.kafka4s.effect.log.slf4j
 
 import cats.effect.Sync
 import cats.implicits._
 import io.kafka4s.effect.log.{Level, Logger, Message}
+import izumi.reflect.{Tag, TagK, TagT}
 import org.slf4j
-
-import scala.reflect.runtime.universe.{typeOf, TypeTag}
 
 class Slf4jLogger[F[_]] private (logger: slf4j.Logger)(implicit F: Sync[F]) extends Logger[F] {
 
@@ -29,7 +28,11 @@ object Slf4jLogger {
         logger <- F.delay(slf4j.LoggerFactory.getLogger(name))
       } yield new Slf4jLogger(logger)
 
-    def of[A](implicit F: Sync[F], tag: TypeTag[A]): F[Slf4jLogger[F]] = of(typeOf[A].typeSymbol.fullName)
+    def of[A](implicit F: Sync[F], tag: Tag[A]): F[Slf4jLogger[F]] = of(tag.closestClass.getCanonicalName)
+
+    def ofK[A[_]](implicit F: Sync[F], tag: TagK[A]): F[Slf4jLogger[F]] = of(tag.closestClass.getCanonicalName)
+
+    def ofT[A[_[_]]](implicit F: Sync[F], tag: TagT[A]): F[Slf4jLogger[F]] = of(tag.closestClass.getCanonicalName)
   }
 
   def apply[F[_]] = new Slf4jLoggerPartiallyApplied[F]()

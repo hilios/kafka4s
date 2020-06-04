@@ -1,7 +1,8 @@
-package io.kafka4s.consumer
+package io.kafka4s.consumer.batch
 
 import cats.Show
 import cats.data.NonEmptyList
+import io.kafka4s.consumer.ConsumerRecord
 
 sealed trait BatchReturn[F[_]] {
   def records: NonEmptyList[ConsumerRecord[F]]

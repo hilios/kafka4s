@@ -1,4 +1,4 @@
-package io.kafka4s.fs2.consumer
+package io.kafka4s.fs2.consumer.batch
 
 import cats.data.NonEmptyList
 import cats.effect.{Concurrent, ConcurrentEffect, ContextShift, Timer}
@@ -7,10 +7,11 @@ import fs2.Stream
 import fs2.concurrent.SignallingRef
 import io.kafka4s.BatchRecordConsumer
 import io.kafka4s.consumer._
+import io.kafka4s.consumer.batch.BatchReturn
 import io.kafka4s.effect.consumer._
 import io.kafka4s.effect.consumer.config._
 import io.kafka4s.effect.log._
-import io.kafka4s.effect.log.impl.Slf4jLogger
+import io.kafka4s.effect.log.slf4j.Slf4jLogger
 import org.apache.kafka.clients.consumer.{ConsumerConfig, OffsetAndMetadata}
 import org.apache.kafka.common.{KafkaException, TopicPartition}
 
@@ -118,7 +119,7 @@ object Fs2BatchKafkaConsumer {
         p
       })
       consumer <- Stream.resource(ConsumerEffect.resource[F](properties, builder.blocker))
-      logger   <- Stream.eval(Slf4jLogger[F].of[Fs2BatchKafkaConsumer[Any]])
+      logger   <- Stream.eval(Slf4jLogger[F].ofT[Fs2BatchKafkaConsumer])
       c = new Fs2BatchKafkaConsumer[F](config,
                                        consumer,
                                        logger,

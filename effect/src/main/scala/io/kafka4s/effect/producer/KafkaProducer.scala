@@ -7,7 +7,7 @@ import cats.effect.{Concurrent, Resource, Sync}
 import cats.implicits._
 import io.kafka4s.common.ToKafka
 import io.kafka4s.effect.log.Logger
-import io.kafka4s.effect.log.impl.Slf4jLogger
+import io.kafka4s.effect.log.slf4j.Slf4jLogger
 import io.kafka4s.effect.producer.config.KafkaProducerConfiguration
 import io.kafka4s.producer.{DefaultProducerRecord, Producer, ProducerRecord, Return}
 import org.apache.kafka.clients.producer.ProducerConfig
@@ -65,7 +65,7 @@ object KafkaProducer {
         p
       })
       producer <- Resource.make(ProducerEffect[F](properties))(_.close)
-      logger   <- Resource.liftF(Slf4jLogger[F].of[KafkaProducer[Any]])
+      logger   <- Resource.liftF(Slf4jLogger[F].ofT[KafkaProducer])
       p = new KafkaProducer[F](config, producer, logger)
       _ <- p.resource
     } yield p

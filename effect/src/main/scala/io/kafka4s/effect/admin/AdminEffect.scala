@@ -8,6 +8,7 @@ import cats.effect.{Concurrent, Timer}
 import cats.implicits._
 import io.kafka4s.effect.utils.Await
 import org.apache.kafka.clients.admin.{AdminClient, NewTopic}
+import org.apache.kafka.common.KafkaFuture
 
 import scala.collection.JavaConverters._
 import scala.concurrent.duration._
@@ -16,16 +17,20 @@ class AdminEffect[F[_]] private (admin: AdminClient, timeout: FiniteDuration = 3
                                                                                            A: Await[F, JFuture]) {
 
   def createTopics(newTopics: Seq[NewTopic]): F[Unit] =
-    for {
-      future <- F.delay(admin.createTopics(newTopics.asJavaCollection).all())
-      _      <- A.await(timeout)(future)
-    } yield ()
+    liftF { _ =>
+      F.delay(admin.createTopics(newTopics.asJavaCollection).all())
+    }.void
 
   def deleteTopics(topics: Seq[String]): F[Unit] =
+    liftF { _ =>
+      F.delay(admin.deleteTopics(topics.asJavaCollection).all())
+    }.void
+
+  def liftF[A](fn: AdminClient => F[KafkaFuture[A]]): F[A] =
     for {
-      future <- F.delay(admin.deleteTopics(topics.asJavaCollection).all())
-      _      <- A.await(timeout)(future)
-    } yield ()
+      future <- fn(admin)
+      a      <- A.await(timeout)(future)
+    } yield a
 
   def close(timeout: FiniteDuration = 30.seconds): F[Unit] =
     F.delay(admin.close(JDuration.ofMillis(timeout.toMillis)))

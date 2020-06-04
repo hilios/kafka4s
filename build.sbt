@@ -64,7 +64,7 @@ lazy val commonSettings = Seq(
   parallelExecution in Test := false,
   parallelExecution in IntegrationTest := false,
   libraryDependencies ++= Seq(
-    Dependencies.scalaReflect % scalaVersion.value,
+    Dependencies.izumiReflect,
     Dependencies.scalaMock % Test,
     Dependencies.scalaTest % Test,
     compilerPlugin(Dependencies.betterMonadicFor),

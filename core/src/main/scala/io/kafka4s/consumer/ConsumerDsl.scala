@@ -4,7 +4,7 @@ import cats.data.NonEmptyList
 import io.kafka4s.common.{Header, Record}
 import io.kafka4s.serdes.Deserializer
 
-private[kafka4s] trait ConsumerSyntax {
+private[kafka4s] trait ConsumerDsl {
 
   /**
     * Combine different matchers
@@ -18,13 +18,6 @@ private[kafka4s] trait ConsumerSyntax {
     */
   object Topic {
     def unapply[F[_]](record: Record[F]): Option[String] = Some(record.topic)
-  }
-
-  /**
-    * Pattern matching for a batch of Records topic
-    */
-  object BatchTopic {
-    def unapply[F[_]](records: NonEmptyList[Record[F]]): Option[String] = Some(records.head.topic)
   }
 
   /**
