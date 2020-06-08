@@ -14,4 +14,11 @@ object Dependencies {
   val izumiReflect     = "dev.zio"          %% "izumi-reflect"      % "1.0.0-M2"
   val betterMonadicFor = "com.olegpy"       %% "better-monadic-for" % "0.3.1"
   val kindProjector    = "org.typelevel"    %% "kind-projector"     % "0.10.3"
+
+  val circe = Seq(
+    "io.circe" %% "circe-core"    % "0.12.3" % Provided,
+    "io.circe" %% "circe-parser"  % "0.12.3" % Provided,
+    "io.circe" %% "circe-generic" % "0.12.3" % Test,
+    "io.circe" %% "circe-literal" % "0.12.3" % Test
+  )
 }

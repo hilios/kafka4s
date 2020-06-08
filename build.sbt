@@ -10,7 +10,7 @@ Global / concurrentRestrictions := Seq(Tags.limitAll(1))
 
 lazy val kafka4s = project.in(file("."))
   .enablePlugins(MicrositesPlugin)
-  .aggregate(core, effect, fs2)
+  .aggregate(core, effect, fs2, circe)
   .settings(Microsite.settings)
   .settings(
     // Root project
@@ -54,6 +54,15 @@ lazy val fs2 = project.in(file("fs2"))
       Dependencies.fs2 % Provided,
       Dependencies.logback % IntegrationTest,
       Dependencies.scalaTest % IntegrationTest,
+    )
+  )
+
+lazy val circe = project.in(file("circe"))
+  .dependsOn(core)
+  .settings(
+    commonSettings,
+    libraryDependencies ++= Dependencies.circe ++ Seq(
+      Dependencies.scalaTest % Test,
     )
   )
 
