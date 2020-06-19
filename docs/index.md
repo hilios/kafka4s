@@ -3,7 +3,7 @@ layout: home
 title:  "Home"
 section: "home"
 technologies:
- - first:  ["Scala", "Kafka", "cats"]
+ - first:  ["Scala", "Kafka", "cats", "fs2"]
 ---
 # Kafka4s
 

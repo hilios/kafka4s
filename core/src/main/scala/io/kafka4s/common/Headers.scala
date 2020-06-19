@@ -116,8 +116,8 @@ object Headers {
     type Result = ApacheKafkaHeaders
 
     def convert(headers: Headers[F]): ApacheKafkaHeaders = {
-      val h = headers.map(h => ToKafka[Header[F]].convert(h))
-      new RecordHeaders(h.asInstanceOf[Iterable[ApacheKafkaHeader]].asJava)
+      val h = headers.map(ToKafka.convert(_)).asInstanceOf[Iterable[ApacheKafkaHeader]]
+      new RecordHeaders(h.asJava)
     }
   }
 }

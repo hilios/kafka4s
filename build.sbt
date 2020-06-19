@@ -40,7 +40,7 @@ lazy val effect = project.in(file("effect"))
       Dependencies.config,
       Dependencies.slf4j,
       Dependencies.logback % IntegrationTest,
-      Dependencies.scalaTest % IntegrationTest,
+      Dependencies.scalaTest % IntegrationTest
     )
   )
 

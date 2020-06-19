@@ -4,11 +4,16 @@ import java.time.{Duration => JDuration}
 import java.util.Properties
 
 import cats.Applicative
+import cats.data.Kleisli
 import cats.effect._
 import cats.implicits._
-import io.kafka4s.consumer.{ConsumerRebalance, DefaultConsumer, DefaultConsumerRecord}
+import io.kafka4s.consumer._
+import io.kafka4s.effect.log.Logger
+import io.kafka4s.effect.properties.implicits._
+import io.kafka4s.effect.log.slf4j.Slf4jLogger
 import io.kafka4s.effect.utils.ThreadSafeBlocker
 import org.apache.kafka.clients.consumer.{
+  ConsumerConfig,
   ConsumerRebalanceListener,
   OffsetAndMetadata,
   OffsetAndTimestamp,
@@ -23,17 +28,18 @@ import scala.util.matching.Regex
 class ConsumerEffect[F[_]] private (consumer: DefaultConsumer,
                                     blocker: Blocker,
                                     threadSafe: ThreadSafeBlocker[F],
-                                    cb: ConsumerRebalance => F[Unit])(implicit F: Effect[F], CS: ContextShift[F]) {
+                                    cb: ConsumerCallback[F])(implicit F: Effect[F], CS: ContextShift[F]) {
 
-  // TODO: Allow rebalance callbacks
   val consumerRebalanceListener = new ConsumerRebalanceListener() {
 
     def onPartitionsRevoked(partitions: java.util.Collection[TopicPartition]): Unit = {
-      F.toIO(cb(ConsumerRebalance.PartitionsRevoked(partitions.asScala.toSeq))).unsafeRunSync()
+      if (partitions.size() > 0)
+        F.toIO(cb(ConsumerRebalance.PartitionsRevoked(partitions.asScala.toSeq))).unsafeRunSync()
     }
 
     def onPartitionsAssigned(partitions: java.util.Collection[TopicPartition]): Unit = {
-      F.toIO(cb(ConsumerRebalance.PartitionsAssigned(partitions.asScala.toSeq))).unsafeRunSync()
+      if (partitions.size() > 0)
+        F.toIO(cb(ConsumerRebalance.PartitionsAssigned(partitions.asScala.toSeq))).unsafeRunSync()
     }
   }
 
@@ -42,10 +48,10 @@ class ConsumerEffect[F[_]] private (consumer: DefaultConsumer,
   def assign(partitions: Seq[TopicPartition]): F[Unit] = F.delay(consumer.assign(partitions.asJava))
 
   def subscribe(topics: Seq[String]): F[Unit] =
-    F.delay(consumer.subscribe(topics.asJava))
+    F.delay(consumer.subscribe(topics.asJava, consumerRebalanceListener))
 
   def subscribe(regex: Regex): F[Unit] =
-    F.delay(consumer.subscribe(regex.pattern))
+    F.delay(consumer.subscribe(regex.pattern, consumerRebalanceListener))
 
   def unsubscribe: F[Unit] = F.delay(consumer.unsubscribe())
 
@@ -105,14 +111,23 @@ class ConsumerEffect[F[_]] private (consumer: DefaultConsumer,
 
 object ConsumerEffect {
 
-  def noop[F[_]: Applicative]: ConsumerRebalance => F[Unit] = _ => Applicative[F].unit
+  def noopCallback[F[_]: Applicative]: ConsumerCallback[F] = Kleisli(_ => Applicative[F].unit)
+
+  def logPartitionsCallback[F[_]: Sync](logger: Logger[F], groupId: String): ConsumerCallback[F] = Kleisli {
+    case ConsumerRebalance.PartitionsAssigned(p) =>
+      logger.info(s"Partitions [${p.mkString(", ")}] assigned to the consumer group id [$groupId]")
+    case ConsumerRebalance.PartitionsRevoked(p) =>
+      logger.info(s"Partitions [${p.mkString(", ")}] revoked from the consumer consumer [$groupId]")
+  }
 
   def apply[F[_]](properties: Properties, blocker: Blocker)(implicit F: ConcurrentEffect[F],
                                                             CS: ContextShift[F]): F[ConsumerEffect[F]] =
     for {
       consumer   <- F.delay(new ApacheKafkaConsumer[Array[Byte], Array[Byte]](properties))
       threadSafe <- ThreadSafeBlocker[F](blocker)
-    } yield new ConsumerEffect(consumer, blocker, threadSafe, noop[F])
+      logger     <- Slf4jLogger[F].ofT[ConcurrentEffect]
+      groupId = properties.getter[String](ConsumerConfig.GROUP_ID_CONFIG).fold(_ => "undefined", identity)
+    } yield new ConsumerEffect(consumer, blocker, threadSafe, logPartitionsCallback(logger, groupId))
 
   def resource[F[_]](properties: Properties, blocker: Blocker)(implicit F: ConcurrentEffect[F], CS: ContextShift[F]) =
     Resource.make(ConsumerEffect[F](properties, blocker))(c => c.wakeup >> c.close())

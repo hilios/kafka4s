@@ -15,6 +15,7 @@ import scala.util.matching.Regex
 case class KafkaConsumerBuilder[F[_]](blocker: Blocker,
                                       pollTimeout: FiniteDuration,
                                       properties: Properties,
+                                      semantic: Semantic,
                                       subscription: Subscription,
                                       recordConsumer: RecordConsumer[F]) {
 
@@ -53,9 +54,12 @@ case class KafkaConsumerBuilder[F[_]](blocker: Blocker,
 object KafkaConsumerBuilder {
 
   def apply[F[_]: Sync](blocker: Blocker): KafkaConsumerBuilder[F] =
-    KafkaConsumerBuilder[F](blocker,
-                            pollTimeout    = 100.millis,
-                            properties     = new Properties(),
-                            subscription   = Subscription.Empty,
-                            recordConsumer = Consumer.empty[F].orNotFound)
+    KafkaConsumerBuilder[F](
+      blocker,
+      pollTimeout    = 100.millis,
+      properties     = new Properties(),
+      semantic       = Semantic.AtLeastOnce,
+      subscription   = Subscription.Empty,
+      recordConsumer = Consumer.empty[F].orNotFound
+    )
 }
