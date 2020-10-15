@@ -1,6 +1,6 @@
 import sbt._
 
-ThisBuild / scalaVersion           := "2.12.10"
+ThisBuild / scalaVersion           := Dependencies.scala2_13
 ThisBuild / version                := "0.1.0"
 ThisBuild / organization           := "io.kafka4s"
 ThisBuild / organizationName       := "Kafka4s"
@@ -54,6 +54,7 @@ lazy val fs2 = project.in(file("fs2"))
       Dependencies.fs2 % Provided,
       Dependencies.logback % IntegrationTest,
       Dependencies.scalaTest % IntegrationTest,
+      Dependencies.scalaMeter % IntegrationTest
     )
   )
 

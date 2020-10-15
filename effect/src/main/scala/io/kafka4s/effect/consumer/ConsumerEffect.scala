@@ -26,7 +26,6 @@ import scala.concurrent.duration._
 import scala.util.matching.Regex
 
 class ConsumerEffect[F[_]] private (consumer: DefaultConsumer,
-                                    blocker: Blocker,
                                     threadSafe: ThreadSafeBlocker[F],
                                     cb: ConsumerCallback[F])(implicit F: Effect[F], CS: ContextShift[F]) {
 
@@ -43,41 +42,38 @@ class ConsumerEffect[F[_]] private (consumer: DefaultConsumer,
     }
   }
 
-  def metrics: F[Map[MetricName, Metric]] = F.delay(consumer.metrics().asScala.toMap)
-
-  def assign(partitions: Seq[TopicPartition]): F[Unit] = F.delay(consumer.assign(partitions.asJava))
+  def assign(partitions: Seq[TopicPartition]): F[Unit] = threadSafe.delay(consumer.assign(partitions.asJava))
 
   def subscribe(topics: Seq[String]): F[Unit] =
-    F.delay(consumer.subscribe(topics.asJava, consumerRebalanceListener))
+    threadSafe.delay(consumer.subscribe(topics.asJava, consumerRebalanceListener))
 
   def subscribe(regex: Regex): F[Unit] =
-    F.delay(consumer.subscribe(regex.pattern, consumerRebalanceListener))
+    threadSafe.delay(consumer.subscribe(regex.pattern, consumerRebalanceListener))
 
-  def unsubscribe: F[Unit] = F.delay(consumer.unsubscribe())
+  def unsubscribe: F[Unit] = threadSafe.delay(consumer.unsubscribe())
 
-  def pause(partitions: Seq[TopicPartition]): F[Unit]  = F.delay(consumer.pause(partitions.asJava))
-  def resume(partitions: Seq[TopicPartition]): F[Unit] = F.delay(consumer.resume(partitions.asJava))
-  def paused: F[Set[TopicPartition]]                   = F.delay(consumer.paused().asScala.toSet)
+  def pause(partitions: Seq[TopicPartition]): F[Unit]  = threadSafe.delay(consumer.pause(partitions.asJava))
+  def resume(partitions: Seq[TopicPartition]): F[Unit] = threadSafe.delay(consumer.resume(partitions.asJava))
+  def paused: F[Set[TopicPartition]]                   = threadSafe.delay(consumer.paused().asScala.toSet)
   def wakeup: F[Unit]                                  = F.delay(consumer.wakeup())
 
-  // Blocking operations
-  def subscription: F[Set[String]]       = blocker.delay(consumer.subscription().asScala.toSet)
-  def assignment: F[Set[TopicPartition]] = blocker.delay(consumer.assignment().asScala.toSet)
+  def subscription: F[Set[String]]       = threadSafe.delay(consumer.subscription().asScala.toSet)
+  def assignment: F[Set[TopicPartition]] = threadSafe.delay(consumer.assignment().asScala.toSet)
 
   def listTopics: F[Map[String, Seq[PartitionInfo]]] =
-    blocker.delay(consumer.listTopics().asScala.toMap.mapValues(_.asScala.toSeq))
+    threadSafe.delay(consumer.listTopics().asScala.toMap.mapValues(_.asScala.toSeq))
 
-  def position(partition: TopicPartition): F[Long]               = blocker.delay(consumer.position(partition))
-  def committed(partition: TopicPartition): F[OffsetAndMetadata] = blocker.delay(consumer.committed(partition))
+  def position(partition: TopicPartition): F[Long]               = threadSafe.delay(consumer.position(partition))
+  def committed(partition: TopicPartition): F[OffsetAndMetadata] = threadSafe.delay(consumer.committed(partition))
 
   def beginningOffsets(partitions: Seq[TopicPartition]): F[Map[TopicPartition, Long]] =
-    blocker.delay(Map(consumer.beginningOffsets(partitions.asJavaCollection).asScala.mapValues(Long2long).toSeq: _*))
+    threadSafe.delay(Map(consumer.beginningOffsets(partitions.asJavaCollection).asScala.mapValues(Long2long).toSeq: _*))
 
   def endOffsets(partitions: Seq[TopicPartition]): F[Map[TopicPartition, Long]] =
-    blocker.delay(Map(consumer.endOffsets(partitions.asJavaCollection).asScala.mapValues(Long2long).toSeq: _*))
+    threadSafe.delay(Map(consumer.endOffsets(partitions.asJavaCollection).asScala.mapValues(Long2long).toSeq: _*))
 
   def offsetsForTimes(timestampsToSearch: Map[TopicPartition, Long]): F[Map[TopicPartition, OffsetAndTimestamp]] =
-    blocker.delay(
+    threadSafe.delay(
       Map(
         consumer
           .offsetsForTimes(timestampsToSearch.mapValues(long2Long).asJava)
@@ -85,17 +81,16 @@ class ConsumerEffect[F[_]] private (consumer: DefaultConsumer,
           .toSeq: _*))
 
   def partitionsFor(topic: String): F[Seq[PartitionInfo]] =
-    blocker.delay(consumer.partitionsFor(topic).asScala.toVector)
+    threadSafe.delay(consumer.partitionsFor(topic).asScala.toVector)
 
   def seek(partition: TopicPartition, offset: Long): F[Unit] = blocker.delay(consumer.seek(partition, offset))
 
   def seekToBeginning(partitions: Seq[TopicPartition]): F[Unit] =
-    blocker.delay(consumer.seekToBeginning(partitions.asJavaCollection))
+    threadSafe.delay(consumer.seekToBeginning(partitions.asJavaCollection))
 
   def seekToEnd(partitions: Seq[TopicPartition]): F[Unit] =
-    blocker.delay(consumer.seekToEnd(partitions.asJavaCollection))
+    threadSafe.delay(consumer.seekToEnd(partitions.asJavaCollection))
 
-  // Blocking and non-thread safe operations
   def close(timeout: FiniteDuration = 30.seconds): F[Unit] =
     threadSafe.delay(consumer.close(JDuration.ofMillis(timeout.toMillis)))
 
@@ -127,7 +122,7 @@ object ConsumerEffect {
       threadSafe <- ThreadSafeBlocker[F](blocker)
       logger     <- Slf4jLogger[F].ofT[ConcurrentEffect]
       groupId = properties.getter[String](ConsumerConfig.GROUP_ID_CONFIG).fold(_ => "undefined", identity)
-    } yield new ConsumerEffect(consumer, blocker, threadSafe, logPartitionsCallback(logger, groupId))
+    } yield new ConsumerEffect(consumer, threadSafe, logPartitionsCallback(logger, groupId))
 
   def resource[F[_]](properties: Properties, blocker: Blocker)(implicit F: ConcurrentEffect[F], CS: ContextShift[F]) =
     Resource.make(ConsumerEffect[F](properties, blocker))(c => c.wakeup >> c.close())
