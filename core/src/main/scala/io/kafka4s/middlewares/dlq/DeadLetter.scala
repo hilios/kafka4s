@@ -22,11 +22,12 @@ object DeadLetter {
   def apply[F[_]: MonadError[*[_], Throwable]](fn: String => String): DeadLetter[F] =
     (record, ex) =>
       (
-        Header.of[F]("X-Exception-Message" -> getMessage(ex)),
-        Header.of[F]("X-Stack-Trace"       -> getStackTrace(ex))
+        Header.of[F]("DLQ-Origin"            -> record.topic),
+        Header.of[F]("DLQ-Exception-Message" -> getMessage(ex)),
+        Header.of[F]("DLQ-Stack-Trace"       -> getStackTrace(ex)),
       ).mapN {
-        case (message, stackTrace) =>
-          ProducerRecord[F](record).put(message, stackTrace).copy(topic = fn(record.topic))
+        case (topic, message, stackTrace) =>
+          ProducerRecord[F](record).put(topic, message, stackTrace).copy(topic = fn(record.topic))
     }
 
   /** Gets a short message summarising the exception in the form
@@ -50,7 +51,7 @@ object DeadLetter {
     sw.getBuffer.toString
   }
 
-  implicit def semigroup[F[_]: Monad] = new Semigroup[DeadLetter[F]] {
+  implicit def semigroup[F[_]: Monad]: Semigroup[DeadLetter[F]] = new Semigroup[DeadLetter[F]] {
     override def combine(x: DeadLetter[F], y: DeadLetter[F]): DeadLetter[F] =
       (record, ex) => x.build(record, ex).flatMap(y.build(_, ex))
   }

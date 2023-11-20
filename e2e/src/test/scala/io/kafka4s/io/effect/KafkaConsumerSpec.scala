@@ -1,34 +1,26 @@
-package io.kafka4s.fs2
-
-import cats.effect.concurrent.{Deferred, Ref}
-import cats.effect.{IO, Resource}
-import cats.implicits._
-import io.kafka4s.Producer
-import io.kafka4s.consumer.{Consumer, ConsumerRecord}
-import io.kafka4s.dsl._
-import io.kafka4s.effect.producer.KafkaProducerBuilder
-import io.kafka4s.fs2.consumer.Fs2KafkaConsumerBuilder
-import io.kafka4s.serdes.implicits._
+package io.kafka4s.io.effect
 
 import scala.concurrent.duration._
 
-class Fs2KafkaConsumerSpec extends IntegrationSpec {
-  val foo  = "fs2-foo"
-  val boom = "fs2-boom"
+class KafkaConsumerSpec extends IntegrationSpec {
+  val foo  = "foo"
+  val boom = "boom"
 
   def withSingleRecord[A](topics: String*)(test: (Producer[IO], Deferred[IO, ConsumerRecord[IO]]) => IO[A]): A = {
     for {
       _           <- executionTime
       _           <- prepareTopics(topics)
       firstRecord <- Resource.liftF(Deferred[IO, ConsumerRecord[IO]])
-      consumer = Fs2KafkaConsumerBuilder[IO](blocker)
+      _ <- KafkaConsumerBuilder[IO](blocker)
         .withTopics(topics: _*)
         .withConsumer(Consumer.of[IO] {
-          case Topic("fs2-boom") => IO.raiseError(new Exception("Somebody set up us the bomb"))
-          case msg               => firstRecord.complete(msg)
+          case Topic("boom") => IO.raiseError(new Exception("Somebody set up us the bomb"))
+          case msg           => firstRecord.complete(msg)
         })
-      _        <- Resource.make(consumer.serve.start)(c => c.cancel)
+        .resource
+
       producer <- KafkaProducerBuilder[IO].resource
+
     } yield (producer, firstRecord)
   }.use(test.tupled).unsafeRunSync()
 
@@ -37,14 +29,16 @@ class Fs2KafkaConsumerSpec extends IntegrationSpec {
       _       <- executionTime
       _       <- prepareTopics(topics)
       records <- Resource.liftF(Ref[IO].of(List.empty[ConsumerRecord[IO]]))
-      consumer = Fs2KafkaConsumerBuilder[IO](blocker)
-        .withTopics(topics: _*)
+      _ <- KafkaConsumerBuilder[IO](blocker)
+        .withTopics(topics.toSet)
         .withConsumer(Consumer.of[IO] {
-          case Topic("fs2-boom") => IO.raiseError(new Exception("Somebody set up us the bomb"))
-          case msg               => records.update(_ :+ msg)
+          case Topic("boom") => IO.raiseError(new Exception("Somebody set up us the bomb"))
+          case msg           => records.update(_ :+ msg)
         })
-      _        <- Resource.make(consumer.serve.start)(c => c.cancel)
+        .resource
+
       producer <- KafkaProducerBuilder[IO].resource
+
     } yield (producer, records)
   }.use(test.tupled).unsafeRunSync()
 

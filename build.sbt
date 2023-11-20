@@ -1,7 +1,6 @@
 import sbt._
 
 ThisBuild / scalaVersion           := Dependencies.scala2_13
-ThisBuild / version                := "0.1.0"
 ThisBuild / organization           := "io.kafka4s"
 ThisBuild / organizationName       := "Kafka4s"
 ThisBuild / turbo                  := true
@@ -11,11 +10,11 @@ Global / concurrentRestrictions := Seq(Tags.limitAll(1))
 lazy val kafka4s = project.in(file("."))
   .enablePlugins(MicrositesPlugin)
   .aggregate(core, effect, fs2, circe)
-  .settings(Microsite.settings)
+//  .settings(Microsite.settings)
   .settings(
     // Root project
     name := "kafka4s",
-    skip in publish := true,
+    skip / publish := true,
     description := "A minimal Scala-idiomatic library for Kafka",
   )
 
@@ -31,30 +30,22 @@ lazy val core = project.in(file("core"))
 
 lazy val effect = project.in(file("effect"))
   .dependsOn(core)
-  .configs(IntegrationTest)
-  .settings(Defaults.itSettings)
   .settings(
     commonSettings,
     libraryDependencies ++= Seq(
       Dependencies.catsEffect % Provided,
       Dependencies.config,
-      Dependencies.slf4j,
-      Dependencies.logback % IntegrationTest,
-      Dependencies.scalaTest % IntegrationTest
+      Dependencies.slf4j
     )
   )
 
 lazy val fs2 = project.in(file("fs2"))
   .dependsOn(core, effect)
-  .configs(IntegrationTest)
-  .settings(Defaults.itSettings)
   .settings(
     commonSettings,
     libraryDependencies ++= Seq(
       Dependencies.fs2 % Provided,
-      Dependencies.logback % IntegrationTest,
-      Dependencies.scalaTest % IntegrationTest,
-      Dependencies.scalaMeter % IntegrationTest
+
     )
   )
 
@@ -67,12 +58,24 @@ lazy val circe = project.in(file("circe"))
     )
   )
 
+lazy val e2e = project.in(file("e2e"))
+  .dependsOn(effect, fs2)
+  .settings(
+    commonSettings,
+    skip / publish := true,
+    libraryDependencies ++= Dependencies.circe ++ Seq(
+      Dependencies.logback % Test,
+      Dependencies.scalaTest % Test,
+      Dependencies.scalaMeter % Test
+    )
+  )
+
 lazy val commonSettings = Seq(
   autoCompilerPlugins := true,
-  fork in Test := true,
-  fork in IntegrationTest := true,
-  parallelExecution in Test := false,
-  parallelExecution in IntegrationTest := false,
+//  fork / Test := true,
+//  fork / IntegrationTest := true,
+//  parallelExecution / Test := false,
+//  parallelExecution / IntegrationTest := false,
   libraryDependencies ++= Seq(
     Dependencies.izumiReflect,
     Dependencies.scalaMock % Test,
@@ -92,7 +95,7 @@ lazy val commonSettings = Seq(
     "-language:implicitConversions",
     "-unchecked",
     "-Xcheckinit",
-//    "-Xfatal-warnings",
+    "-Xfatal-warnings",
     "-Xfuture",
     "-Xlint:adapted-args",
     "-Xlint:by-name-right-associative",

@@ -6,7 +6,7 @@ import io.kafka4s.implicits._
 import io.kafka4s.test.UnitSpec
 
 class ProducerRecordSpec extends UnitSpec {
-  "$.of" should "create an ProducerRecord instance from a topic and message tuple" in {
+  "#of" should "create an ProducerRecord instance from a topic and message tuple" in {
     val record = ProducerRecord.of[Id]("my-topic" -> "message")
     record.topic shouldBe "my-topic"
     record.as[String] shouldBe "message"

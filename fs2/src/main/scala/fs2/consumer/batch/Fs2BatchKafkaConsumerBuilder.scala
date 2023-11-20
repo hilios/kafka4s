@@ -1,4 +1,4 @@
-package io.kafka4s.fs2.consumer.batch
+package fs2.consumer.batch
 
 import java.util.Properties
 

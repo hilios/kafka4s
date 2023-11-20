@@ -2,8 +2,9 @@ import sbt._
 
 object Dependencies {
 
-  val scala2_12 = "2.12.13"
-  val scala2_13 = "2.13.3"
+  val scala2_12 = "2.12.18"
+  val scala2_13 = "2.13.12"
+  val scala3 = "3.3.1"
 
   val scala = Seq(scala2_12, scala2_13)
 
@@ -15,7 +16,7 @@ object Dependencies {
   val config           = "com.typesafe"      % "config"              % "1.4.0"
   val slf4j            = "org.slf4j"         % "slf4j-api"           % "1.7.25"
   val logback          = "ch.qos.logback"    % "logback-classic"     % "1.2.3"
-  val scalaTest        = "org.scalatest"     %% "scalatest"          % "3.2.2"
+  val scalaTest        = "org.scalatest"     %% "scalatest"          % "3.2.17"
   val scalaMeter       = "com.storm-enroute" %% "scalameter"         % "0.19"
   val scalaMock        = "org.scalamock"     %% "scalamock"          % "4.4.0"
   val izumiReflect     = "dev.zio"           %% "izumi-reflect"      % "1.0.0-M9"

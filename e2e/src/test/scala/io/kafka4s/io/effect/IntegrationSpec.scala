@@ -1,11 +1,4 @@
-package io.kafka4s.effect
-
-import cats.effect.{Blocker, Clock, ContextShift, IO, Resource, Timer}
-import cats.implicits._
-import io.kafka4s.effect.admin.KafkaAdminBuilder
-import org.apache.kafka.clients.admin.NewTopic
-import org.scalatest.flatspec.AnyFlatSpec
-import org.scalatest.matchers.should.Matchers
+package io.kafka4s.io.effect
 
 import scala.concurrent.duration._
 import scala.concurrent.{ExecutionContext, TimeoutException}

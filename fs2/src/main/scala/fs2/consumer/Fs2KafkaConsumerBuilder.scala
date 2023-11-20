@@ -1,4 +1,4 @@
-package io.kafka4s.fs2.consumer
+package fs2.consumer
 
 import java.util.Properties
 

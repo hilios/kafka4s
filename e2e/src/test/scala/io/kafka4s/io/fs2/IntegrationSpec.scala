@@ -1,13 +1,6 @@
-package io.kafka4s.fs2
+package io.kafka4s.io.fs2
 
-import cats.effect.{Blocker, Clock, ContextShift, IO, Resource, Timer}
-import cats.implicits._
-import io.kafka4s.effect.admin.KafkaAdminBuilder
-import org.apache.kafka.clients.admin.NewTopic
-import org.scalatest.flatspec.AnyFlatSpec
-import org.scalatest.matchers.should.Matchers
-
-import scala.concurrent.duration._
+import scala.concurrent.duration.{FiniteDuration, MILLISECONDS, SECONDS}
 import scala.concurrent.{ExecutionContext, TimeoutException}
 
 trait IntegrationSpec extends AnyFlatSpec with Matchers { self: AnyFlatSpec =>
@@ -39,12 +32,14 @@ trait IntegrationSpec extends AnyFlatSpec with Matchers { self: AnyFlatSpec =>
   }
 
   def executionTime: Resource[IO, Long] =
-    Resource.make(Clock[IO].monotonic(MILLISECONDS))(t0 =>
-      for {
-        t1 <- Clock[IO].monotonic(MILLISECONDS)
-        t = FiniteDuration(t1 - t0, SECONDS)
-        _ <- IO(info(s"Test completed in $t"))
-      } yield ())
+    Resource.make(Clock[IO].monotonic(MILLISECONDS))(
+      t0 =>
+        for {
+          t1 <- Clock[IO].monotonic(MILLISECONDS)
+          t = FiniteDuration(t1 - t0, SECONDS)
+          _ <- IO(info(s"Test completed in $t"))
+        } yield ()
+    )
 
   def prepareTopics(topics: Seq[String]): Resource[IO, Unit] =
     for {
