@@ -1,4 +1,17 @@
-package io.kafka4s.io.effect
+package io.kafka4s.effect
+
+import cats.effect.IO
+import cats.effect.concurrent.Deferred
+import cats.effect.Resource
+import cats.effect.concurrent.Ref
+import io.kafka4s.producer._
+import io.kafka4s.consumer._
+import io.kafka4s.dsl._
+import io.kafka4s.implicits._
+import io.kafka4s.effect.producer.KafkaProducerBuilder
+import io.kafka4s.effect.consumer.KafkaConsumerBuilder
+import cats.implicits._
+import io.kafka4s.IntegrationSpec
 
 import scala.concurrent.duration._
 
@@ -10,7 +23,7 @@ class KafkaConsumerSpec extends IntegrationSpec {
     for {
       _           <- executionTime
       _           <- prepareTopics(topics)
-      firstRecord <- Resource.liftF(Deferred[IO, ConsumerRecord[IO]])
+      firstRecord <- Resource.eval(Deferred[IO, ConsumerRecord[IO]])
       _ <- KafkaConsumerBuilder[IO](blocker)
         .withTopics(topics: _*)
         .withConsumer(Consumer.of[IO] {
@@ -28,7 +41,7 @@ class KafkaConsumerSpec extends IntegrationSpec {
     for {
       _       <- executionTime
       _       <- prepareTopics(topics)
-      records <- Resource.liftF(Ref[IO].of(List.empty[ConsumerRecord[IO]]))
+      records <- Resource.eval(Ref[IO].of(List.empty[ConsumerRecord[IO]]))
       _ <- KafkaConsumerBuilder[IO](blocker)
         .withTopics(topics.toSet)
         .withConsumer(Consumer.of[IO] {

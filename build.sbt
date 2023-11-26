@@ -10,8 +10,8 @@ ThisBuild / semanticdbVersion := scalafixSemanticdb.revision
 Global / concurrentRestrictions := Seq(Tags.limitAll(1))
 
 lazy val kafka4s = project.in(file("."))
-//  .enablePlugins(MicrositesPlugin)
-  .aggregate(core, effect, fs2, circe)
+  .enablePlugins(MicrositesPlugin)
+  .aggregate(core, effect, fs2, circe, e2e)
 //  .settings(Microsite.settings)
   .settings(
     // Root project
@@ -61,22 +61,22 @@ lazy val circe = project.in(file("circe"))
   )
 
 lazy val e2e = project.in(file("e2e"))
-  .dependsOn(effect, fs2)
+  .dependsOn(core, effect, fs2)
   .settings(
     commonSettings,
     skip / publish := true,
     libraryDependencies ++= Seq(
-      Dependencies.logback % Test,
-      Dependencies.scalaMeter % Test
+      Dependencies.kafkaClients % Test,
+      Dependencies.catsEffect   % Test,
+      Dependencies.fs2          % Test,
+      Dependencies.logback      % Test,
+      Dependencies.scalaMeter   % Test,
+      Dependencies.scalaTest    % Test,
     )
   )
 
 lazy val commonSettings = Seq(
   autoCompilerPlugins := true,
-//  fork / Test := true,
-//  fork / IntegrationTest := true,
-//  parallelExecution / Test := false,
-//  parallelExecution / IntegrationTest := false,
   libraryDependencies ++= Seq(
     Dependencies.izumiReflect,
     Dependencies.scalaMock % Test,

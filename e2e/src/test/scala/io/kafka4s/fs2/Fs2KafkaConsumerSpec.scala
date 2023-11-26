@@ -1,4 +1,15 @@
-package io.kafka4s.io.fs2
+package io.kafka4s.fs2
+
+import cats.effect.concurrent.{Deferred, Ref}
+import cats.effect.{IO, Resource}
+import cats.implicits._
+import io.kafka4s.IntegrationSpec
+import io.kafka4s.consumer._
+import io.kafka4s.dsl._
+import io.kafka4s.effect.producer.KafkaProducerBuilder
+import io.kafka4s.fs2.consumer.Fs2KafkaConsumerBuilder
+import io.kafka4s.implicits._
+import io.kafka4s.producer._
 
 import scala.concurrent.duration._
 

@@ -1,5 +1,12 @@
-package io.kafka4s.io.effect
+package io.kafka4s
 
+import cats.effect.{Blocker, Clock, ContextShift, IO, Resource, Timer}
+import io.kafka4s.effect.admin.KafkaAdminBuilder
+import org.scalatest.flatspec.AnyFlatSpec
+import org.scalatest.matchers.should.Matchers
+import org.apache.kafka.clients.admin.NewTopic
+
+import cats.implicits._
 import scala.concurrent.duration._
 import scala.concurrent.{ExecutionContext, TimeoutException}
 
@@ -26,7 +33,7 @@ trait IntegrationSpec extends AnyFlatSpec with Matchers {
     for {
       isReady <- loop.start
       _ <- IO.race(Timer[IO].sleep(duration), isReady.join).flatMap {
-        case Left(_)  => isReady.cancel >> IO.raiseError(new TimeoutException(duration.toString()))
+        case Left(_)  => isReady.cancel *> IO.raiseError(new TimeoutException(duration.toString()))
         case Right(_) => IO.unit
       }
     } yield ()
@@ -43,7 +50,7 @@ trait IntegrationSpec extends AnyFlatSpec with Matchers {
   def prepareTopics(topics: Seq[String]): Resource[IO, Unit] =
     for {
       admin <- KafkaAdminBuilder[IO].resource
-      newTopics = topics.map(new NewTopic(_, 1, 1))
+      newTopics = topics.map(new NewTopic(_, 1, 1.toShort))
       _ <- Resource.make(admin.createTopics(newTopics))(_ => admin.deleteTopics(topics)).attempt
     } yield ()
 }

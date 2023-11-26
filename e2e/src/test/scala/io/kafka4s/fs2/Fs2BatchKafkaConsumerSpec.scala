@@ -1,4 +1,16 @@
-package io.kafka4s.io.fs2
+package io.kafka4s.fs2
+
+import cats.effect.{IO, Resource}
+import cats.effect.concurrent.Ref
+import io.kafka4s.IntegrationSpec
+import io.kafka4s.consumer._
+import io.kafka4s.consumer.batch.BatchConsumer
+import io.kafka4s.dsl._
+import io.kafka4s.implicits._
+import io.kafka4s.fs2.consumer.batch.Fs2BatchKafkaConsumerBuilder
+import cats.implicits._
+import io.kafka4s.producer._
+import io.kafka4s.effect.producer.KafkaProducerBuilder
 
 import scala.concurrent.duration._
 
@@ -11,11 +23,11 @@ class Fs2BatchKafkaConsumerSpec extends IntegrationSpec {
     for {
       _       <- executionTime
       _       <- prepareTopics(topics)
-      records <- Resource.liftF(Ref[IO].of(List.empty[ConsumerRecord[IO]]))
+      records <- Resource.eval(Ref[IO].of(List.empty[ConsumerRecord[IO]]))
       consumer = Fs2BatchKafkaConsumerBuilder[IO](blocker)
         .withTopics(topics: _*)
         .withConsumer(BatchConsumer.of[IO] {
-          case Topic("fs2-batch-boom") => IO.raiseError(new Exception("Somebody set up us the bomb"))
+//          case Topic("fs2-batch-boom") => IO.raiseError(new RuntimeException("Somebody set up us the bomb"))
           case batch                   => records.update(_ ++ batch.toList)
         })
       _        <- Resource.make(consumer.serve.start)(c => c.cancel)

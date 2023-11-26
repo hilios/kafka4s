@@ -59,18 +59,18 @@ object KafkaProducer {
 
   def resource[F[_]](builder: KafkaProducerBuilder[F])(implicit F: Concurrent[F]): Resource[F, KafkaProducer[F]] =
     for {
-      config <- Resource.liftF(F.fromEither {
+      config <- Resource.eval(F.fromEither {
         if (builder.properties.isEmpty) KafkaProducerConfiguration.load
         else KafkaProducerConfiguration.loadFrom(builder.properties)
       })
-      properties <- Resource.liftF(F.delay {
+      properties <- Resource.eval(F.delay {
         val p = config.properties
         p.put(ProducerConfig.KEY_SERIALIZER_CLASS_CONFIG, "org.apache.kafka.common.serialization.ByteArraySerializer")
         p.put(ProducerConfig.VALUE_SERIALIZER_CLASS_CONFIG, "org.apache.kafka.common.serialization.ByteArraySerializer")
         p
       })
       producer <- Resource.make(ProducerEffect[F](properties))(_.close)
-      logger   <- Resource.liftF(Slf4jLogger[F].ofT[KafkaProducer])
+      logger   <- Resource.eval(Slf4jLogger[F].ofT[KafkaProducer])
       p = new KafkaProducer[F](config, producer, logger)
       _ <- p.resource
     } yield p
