@@ -2,6 +2,7 @@ package io.kafka4s.serdes
 
 import cats.Monad
 import cats.SemigroupK
+import cats.implicits._
 
 trait Deserializer[A] {
   def deserialize(value: Array[Byte]): Result[A]
@@ -26,10 +27,10 @@ object Deserializer {
       def deserialize(value: Array[Byte]): Result[B] = fa.deserialize(value).flatMap(f(_).deserialize(value))
     }
 
-    def tailRecM[A, B](a: A)(f: A => Deserializer[Either[A, B]]): Deserializer[B] = new Deserializer[B] {
 
-      def deserialize(value: Array[Byte]): Result[B] =
-        f(a).deserialize(value).flatMap(identity).leftMap(a => new IllegalArgumentException(a.getClass.getName))
+    override def tailRecM[A, B](a: A)(f: A => Deserializer[Either[A, B]]): Deserializer[B] = new Deserializer[B] {
+      override def deserialize(value: Array[Byte]): Result[B] =
+        f(a).deserialize(value).flatMap(_.leftMap(a => new IllegalArgumentException(a.getClass.getName)))
     }
 
     def combineK[A](l: Deserializer[A], r: Deserializer[A]): Deserializer[A] =

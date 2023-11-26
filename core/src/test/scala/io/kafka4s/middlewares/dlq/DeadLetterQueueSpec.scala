@@ -1,12 +1,18 @@
 package io.kafka4s.middlewares.dlq
 
-import cats.data.{Kleisli, NonEmptyList}
+import cats.data.Kleisli
+import cats.data.NonEmptyList
 import cats.implicits._
 import io.kafka4s.common.Record
-import io.kafka4s.consumer.{Consumer, ConsumerRecord, batch, Return => ConsumerReturn}
+import io.kafka4s.consumer.Consumer
+import io.kafka4s.consumer.ConsumerRecord
+import io.kafka4s.consumer.batch
+import io.kafka4s.consumer.{Return => ConsumerReturn}
 import io.kafka4s.dsl._
 import io.kafka4s.implicits._
-import io.kafka4s.producer.{Producer, ProducerRecord, Return => ProducerReturn}
+import io.kafka4s.producer.Producer
+import io.kafka4s.producer.ProducerRecord
+import io.kafka4s.producer.{Return => ProducerReturn}
 import io.kafka4s.test.UnitSpec
 
 class DeadLetterQueueSpec extends UnitSpec { self =>
@@ -47,8 +53,8 @@ class DeadLetterQueueSpec extends UnitSpec { self =>
     send1
       .expects(where { record: ProducerRecord[Test] =>
         record.topic.endsWith("-dlq") &&
-        record.header[String]("X-Exception-Message") == Right(Some("Error: Boom!")) &&
-        record.header[String]("X-Stack-Trace").map(_.nonEmpty) == Right(true)
+        record.header[String]("X-DLQ-Exception-Message") == Right(Some("Error: Boom!")) &&
+        record.header[String]("X-DLQ-Stack-Trace").map(_.nonEmpty) == Right(true)
       })
       .returns(())
       .once()
@@ -69,8 +75,8 @@ class DeadLetterQueueSpec extends UnitSpec { self =>
     send1
       .expects(where { record: ProducerRecord[Test] =>
         record.topic.endsWith("_dlq") &&
-        record.header[String]("X-Exception-Message") == Right(Some("Error: Boom!")) &&
-        record.header[String]("X-Stack-Trace").map(_.nonEmpty) == Right(true)
+        record.header[String]("X-DLQ-Exception-Message") == Right(Some("Error: Boom!")) &&
+        record.header[String]("X-DLQ-Stack-Trace").map(_.nonEmpty) == Right(true)
       })
       .returns(())
       .once()
@@ -113,8 +119,8 @@ class DeadLetterQueueSpec extends UnitSpec { self =>
     send1
       .expects(where { record: ProducerRecord[Test] =>
         record.topic.endsWith("-dlq") &&
-        record.header[String]("X-Exception-Message") == Right(Some("Error: Boom!")) &&
-        record.header[String]("X-Stack-Trace").map(_.nonEmpty) == Right(true)
+        record.header[String]("X-DLQ-Exception-Message") == Right(Some("Error: Boom!")) &&
+        record.header[String]("X-DLQ-Stack-Trace").map(_.nonEmpty) == Right(true)
       })
       .returns(())
       .twice()

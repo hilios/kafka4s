@@ -54,7 +54,7 @@ object KafkaProducer {
 
   def resource[F[_]](builder: KafkaProducerBuilder[F])(implicit F: Concurrent[F]): Resource[F, KafkaProducer[F]] =
     for {
-      config <- Resource.liftF(F.fromEither {
+      config <- Resource.liftK(F.fromEither {
         if (builder.properties.isEmpty) KafkaProducerConfiguration.load
         else KafkaProducerConfiguration.loadFrom(builder.properties)
       })

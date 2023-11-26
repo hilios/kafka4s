@@ -1,9 +1,9 @@
 package io.kafka4s.serdes
 
-import java.util.UUID
-
 import io.kafka4s.serdes.implicits._
 import io.kafka4s.test.UnitSpec
+
+import java.util.UUID
 
 class SerdesImplicitsSpec extends UnitSpec {
 

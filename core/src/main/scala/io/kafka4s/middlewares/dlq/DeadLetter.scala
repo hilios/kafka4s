@@ -26,9 +26,9 @@ object DeadLetter {
   def apply[F[_]: MonadError[*[_], Throwable]](fn: String => String): DeadLetter[F] =
     (record, ex) =>
       (
-        Header.of[F]("DLQ-Origin"            -> record.topic),
-        Header.of[F]("DLQ-Exception-Message" -> getMessage(ex)),
-        Header.of[F]("DLQ-Stack-Trace"       -> getStackTrace(ex)),
+        Header.of[F]("X-DLQ-Origin"            -> record.topic),
+        Header.of[F]("X-DLQ-Exception-Message" -> getMessage(ex)),
+        Header.of[F]("X-DLQ-Stack-Trace"       -> getStackTrace(ex)),
       ).mapN {
         case (topic, message, stackTrace) =>
           ProducerRecord[F](record).put(topic, message, stackTrace).copy(topic = fn(record.topic))

@@ -18,7 +18,7 @@ case class KafkaAdminBuilder[F[_]] private (properties: Properties) {
 
   def resource(implicit F: Concurrent[F], T: Timer[F]): Resource[F, AdminEffect[F]] =
     for {
-      config <- Resource.liftF(F.fromEither {
+      config <- Resource.liftK(F.fromEither {
         if (properties.isEmpty) KafkaAdminConfiguration.load else KafkaAdminConfiguration.loadFrom(properties)
       })
       admin <- Resource.make(AdminEffect[F](config.properties))(_.close())

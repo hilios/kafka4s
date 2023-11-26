@@ -14,7 +14,7 @@ object Serializer {
     def serialize(value: A): Result[Array[Byte]] = S.serialize(value)
   }
 
-  def from[A](f: A => Either[Throwable, Array[Byte]]): Serializer[A] =
+  def from[A](f: A => Result[Array[Byte]]): Serializer[A] =
     new Serializer[A] {
       def serialize(in: A): Result[Array[Byte]] = f(in)
     }

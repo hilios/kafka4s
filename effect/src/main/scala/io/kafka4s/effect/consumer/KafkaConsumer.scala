@@ -106,7 +106,7 @@ object KafkaConsumer {
                                                        T: Timer[F],
                                                        CS: ContextShift[F]): Resource[F, KafkaConsumer[F]] =
     for {
-      config <- Resource.liftF(F.fromEither {
+      config <- Resource.liftK(F.fromEither {
         if (builder.properties.isEmpty) KafkaConsumerConfiguration.load
         else KafkaConsumerConfiguration.loadFrom(builder.properties)
       })

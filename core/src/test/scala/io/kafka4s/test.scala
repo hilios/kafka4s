@@ -1,6 +1,8 @@
 package io.kafka4s
 
-import cats.{Id, Monad, MonadError}
+import cats.Id
+import cats.Monad
+import cats.MonadError
 import io.kafka4s.serdes.Serializer
 import org.scalamock.scalatest.MockFactory
 import org.scalatest.flatspec.AnyFlatSpec
@@ -18,7 +20,7 @@ object test {
 
     implicit val applicativeError: MonadError[Id, Throwable] = new MonadError[Id, Throwable] {
 
-      def flatMap[A, B](fa: Id[A])(f: A => Id[B]): Id[B] = Monad[Id].flatMap(fa)(f(_))
+      def flatMap[A, B](fa: Id[A])(f: A => Id[B]): Id[B] = f(fa)
 
       def tailRecM[A, B](a: A)(f: A => Id[Either[A, B]]): Id[B] = Monad[Id].tailRecM(a)(f(_))
 

@@ -1,10 +1,10 @@
 package io.kafka4s.serdes.circe
 
 import io.circe.Json
-import io.circe.literal._
 import io.circe.generic.auto._
-import io.kafka4s.serdes.circe.implicits._
+import io.circe.literal._
 import io.kafka4s.serdes.Serde
+import io.kafka4s.serdes.circe.implicits._
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should.Matchers
 

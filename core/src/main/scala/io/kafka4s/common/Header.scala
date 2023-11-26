@@ -40,9 +40,9 @@ object Header {
       apply(keyValue._1, keyValue._2)
 
     def apply[V](key: String, value: V)(implicit F: ApplicativeError[F, Throwable], S: Serializer[V]): F[Header[F]] =
-      for {
-        bytes <- F.fromEither(S.serialize(value))
-      } yield Header(key, bytes)
+      F.fromEither(for {
+        bytes <- S.serialize(value)
+      } yield Header(key, bytes))
   }
 
   def of[F[_]] = new HeaderPartiallyApplied[F]

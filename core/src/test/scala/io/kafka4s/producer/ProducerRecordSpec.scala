@@ -1,7 +1,8 @@
 package io.kafka4s.producer
 
 import cats.Id
-import io.kafka4s.common.{Header, ToKafka}
+import io.kafka4s.common.Header
+import io.kafka4s.common.ToKafka
 import io.kafka4s.implicits._
 import io.kafka4s.test.UnitSpec
 

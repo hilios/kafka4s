@@ -2,8 +2,8 @@ package io.kafka4s.consumer
 
 import cats.Id
 import cats.implicits._
-import io.kafka4s.implicits._
 import io.kafka4s.dsl._
+import io.kafka4s.implicits._
 import io.kafka4s.test.UnitSpec
 
 class ConsumerSpec extends UnitSpec {

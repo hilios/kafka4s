@@ -1,12 +1,12 @@
 package io.kafka4s.producer
 
-import java.time.Instant
-
 import cats.Id
 import cats.data.Kleisli
 import io.kafka4s.implicits._
 import io.kafka4s.producer.Return.Ack
 import io.kafka4s.test.UnitSpec
+
+import java.time.Instant
 
 class ProducerSpec extends UnitSpec {
 
@@ -14,11 +14,11 @@ class ProducerSpec extends UnitSpec {
   val id    = 1L
   val hello = "Hello, World!"
 
-  val producer = new Producer[Id] {
+  val producer: Producer[Id] = new Producer[Id] {
 
     // Just return an ack for testing
     def send1: Kleisli[Id, ProducerRecord[Id], Return[Id]] =
-      Kleisli(Ack(_, 0, Some(0L), Some(Instant.now())).asInstanceOf[Id[Return[Id]]])
+      Kleisli(record => Id(Ack(record, 0, Some(0L), Some(Instant.now()))))
   }
 
   "#send" should "create a record from a topic and value" in {

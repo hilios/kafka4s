@@ -2,9 +2,10 @@ package io.kafka4s.consumer
 
 import cats.Id
 import cats.data.NonEmptyList
-import io.kafka4s.common.{Header, Headers}
-import io.kafka4s.implicits._
+import io.kafka4s.common.Header
+import io.kafka4s.common.Headers
 import io.kafka4s.dsl._
+import io.kafka4s.implicits._
 import io.kafka4s.test.UnitSpec
 
 class ConsumerDslSpec extends UnitSpec {
@@ -62,14 +63,14 @@ class ConsumerDslSpec extends UnitSpec {
 
   behavior of ":?"
 
-  final object FooHeader extends HeaderByKey[String]("foo")
-  final object BarHeader extends HeaderByKey[String]("bar")
-  final object MaybeFooHeader extends OptionalHeaderByKey[String]("foo")
-  final object MaybeBarHeader extends OptionalHeaderByKey[String]("bar")
-  final object MultiFooHeader extends MultipleHeadersByKey("foo")
-  final object MultiBarHeader extends MultipleHeadersByKey("bar")
-  final object NelFooHeader extends NelHeadersByKey("foo")
-  final object NelBarHeader extends NelHeadersByKey("bar")
+  object FooHeader extends HeaderByKey[String]("foo")
+  object BarHeader extends HeaderByKey[String]("bar")
+  object MaybeFooHeader extends OptionalHeaderByKey[String]("foo")
+  object MaybeBarHeader extends OptionalHeaderByKey[String]("bar")
+  object MultiFooHeader extends MultipleHeadersByKey("foo")
+  object MultiBarHeader extends MultipleHeadersByKey("bar")
+  object NelFooHeader extends NelHeadersByKey("foo")
+  object NelBarHeader extends NelHeadersByKey("bar")
 
   "HeaderByKey[A]" should "extract a header by its key" in {
     val _ :? FooHeader(foo) = record
