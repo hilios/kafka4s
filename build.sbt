@@ -66,13 +66,13 @@ lazy val e2e = project.in(file("e2e"))
     commonSettings,
     skip / publish := true,
     libraryDependencies ++= Seq(
-      Dependencies.kafkaClients % Test,
-      Dependencies.catsEffect   % Test,
-      Dependencies.fs2          % Test,
-      Dependencies.logback      % Test,
-      Dependencies.scalaMeter   % Test,
-      Dependencies.scalaTest    % Test,
-    )
+      Dependencies.kafkaClients   % Test,
+      Dependencies.catsEffect     % Test,
+      Dependencies.fs2            % Test,
+      Dependencies.logback        % Test,
+      Dependencies.scalaMeter     % Test,
+      Dependencies.scalaTest      % Test,
+    ) ++ Dependencies.testContainers
   )
 
 lazy val commonSettings = Seq(

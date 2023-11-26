@@ -1,6 +1,8 @@
 package io.kafka4s
 
 import cats.effect.{Blocker, Clock, ContextShift, IO, Resource, Timer}
+import com.dimafeng.testcontainers.KafkaContainer
+import com.dimafeng.testcontainers.scalatest.TestContainerForAll
 import io.kafka4s.effect.admin.KafkaAdminBuilder
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should.Matchers
@@ -11,10 +13,12 @@ import scala.concurrent.duration._
 import scala.concurrent.{ExecutionContext, TimeoutException}
 
 
-trait IntegrationSpec extends AnyFlatSpec with Matchers {
+trait IntegrationSpec extends AnyFlatSpec with Matchers with TestContainerForAll {
   implicit val contextShift: ContextShift[IO] = IO.contextShift(ExecutionContext.global)
   implicit val timer: Timer[IO]               = IO.timer(ExecutionContext.global)
   val blocker                                 = Blocker.liftExecutionContext(ExecutionContext.global)
+
+  override val containerDef = KafkaContainer.Def()
 
   def waitFor[A](duration: FiniteDuration)(ioa: => IO[A]): IO[A] =
     IO.race(Timer[IO].sleep(duration), ioa).flatMap {

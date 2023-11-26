@@ -111,11 +111,11 @@ object KafkaConsumer {
                                                        T: Timer[F],
                                                        CS: ContextShift[F]): Resource[F, KafkaConsumer[F]] =
     for {
-      config <- Resource.liftF(F.fromEither {
+      config <- Resource.eval(F.fromEither {
         if (builder.properties.isEmpty) KafkaConsumerConfiguration.load
         else KafkaConsumerConfiguration.loadFrom(builder.properties)
       })
-      properties <- Resource.liftF(F.delay {
+      properties <- Resource.eval(F.delay {
         val p = config.properties
         p.put(ConsumerConfig.ENABLE_AUTO_COMMIT_CONFIG, "false")
         p.put(ConsumerConfig.KEY_DESERIALIZER_CLASS_CONFIG,
@@ -125,7 +125,7 @@ object KafkaConsumer {
         p
       })
       consumer <- ConsumerEffect.resource[F](properties, builder.blocker)
-      logger   <- Resource.liftF(Slf4jLogger[F].ofT[KafkaConsumer])
+      logger   <- Resource.eval(Slf4jLogger[F].ofT[KafkaConsumer])
       c = new KafkaConsumer[F](config,
                                consumer,
                                logger,
