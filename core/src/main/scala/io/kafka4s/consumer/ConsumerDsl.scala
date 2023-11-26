@@ -1,7 +1,8 @@
 package io.kafka4s.consumer
 
 import cats.data.NonEmptyList
-import io.kafka4s.common.{Header, Record}
+import io.kafka4s.common.Header
+import io.kafka4s.common.Record
 import io.kafka4s.serdes.Deserializer
 
 private[kafka4s] trait ConsumerDsl {

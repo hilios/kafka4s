@@ -1,7 +1,7 @@
 package io.kafka4s.serdes
 
-import cats.implicits._
-import cats.{Contravariant, SemigroupK}
+import cats.Contravariant
+import cats.SemigroupK
 
 trait Serializer[A] {
   def serialize(value: A): Result[Array[Byte]]
@@ -19,7 +19,7 @@ object Serializer {
       def serialize(in: A): Result[Array[Byte]] = f(in)
     }
 
-  implicit val serializerInstances = new Contravariant[Serializer] with SemigroupK[Serializer] {
+  implicit val serializerInstances: Contravariant[Serializer] with SemigroupK[Serializer] = new Contravariant[Serializer] with SemigroupK[Serializer] {
 
     def contramap[A, B](fa: Serializer[A])(f: B => A): Serializer[B] = new Serializer[B] {
       def serialize(value: B): Result[Array[Byte]] = fa.serialize(f(value))

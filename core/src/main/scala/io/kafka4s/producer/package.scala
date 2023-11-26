@@ -1,6 +1,7 @@
 package io.kafka4s
 
-import org.apache.kafka.clients.producer.{Producer => ApacheProducer, ProducerRecord => ApacheProducerRecord}
+import org.apache.kafka.clients.producer.{Producer => ApacheProducer}
+import org.apache.kafka.clients.producer.{ProducerRecord => ApacheProducerRecord}
 
 package object producer {
   private[kafka4s] type DefaultProducer       = ApacheProducer[Array[Byte], Array[Byte]]

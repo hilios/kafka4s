@@ -1,7 +1,9 @@
 package io.kafka4s
 
-import cats.data.{Kleisli, OptionT}
-import org.apache.kafka.clients.consumer.{Consumer => ApacheConsumer, ConsumerRecord => ApacheConsumerRecord}
+import cats.data.Kleisli
+import cats.data.OptionT
+import org.apache.kafka.clients.consumer.{Consumer => ApacheConsumer}
+import org.apache.kafka.clients.consumer.{ConsumerRecord => ApacheConsumerRecord}
 
 package object consumer extends ConsumerImplicitOps {
   private[kafka4s] type DefaultConsumer       = ApacheConsumer[Array[Byte], Array[Byte]]

@@ -1,9 +1,9 @@
 package io.kafka4s.serdes
 
+import cats.implicits._
+
 import java.nio.ByteBuffer
 import java.util.UUID
-
-import cats.implicits._
 
 private[kafka4s] trait SerdeImplicits {
 

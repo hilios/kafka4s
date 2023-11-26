@@ -1,10 +1,11 @@
 package io.kafka4s.common
 
-import java.util.Base64
-
+import cats.ApplicativeError
+import cats.Show
 import cats.implicits._
-import cats.{ApplicativeError, Show}
 import io.kafka4s.serdes.Deserializer
+
+import java.util.Base64
 
 trait Record[F[_]] {
   def topic: String

@@ -1,14 +1,16 @@
 import sbt._
 
-ThisBuild / scalaVersion           := Dependencies.scala2_13
-ThisBuild / organization           := "io.kafka4s"
-ThisBuild / organizationName       := "Kafka4s"
-ThisBuild / turbo                  := true
+ThisBuild / scalaVersion      := Dependencies.scala2_13
+ThisBuild / organization      := "io.kafka4s"
+ThisBuild / organizationName  := "Kafka4s"
+ThisBuild / turbo             := true
+ThisBuild / semanticdbEnabled := true
+ThisBuild / semanticdbVersion := scalafixSemanticdb.revision
 
 Global / concurrentRestrictions := Seq(Tags.limitAll(1))
 
 lazy val kafka4s = project.in(file("."))
-  .enablePlugins(MicrositesPlugin)
+//  .enablePlugins(MicrositesPlugin)
   .aggregate(core, effect, fs2, circe)
 //  .settings(Microsite.settings)
   .settings(
@@ -63,9 +65,8 @@ lazy val e2e = project.in(file("e2e"))
   .settings(
     commonSettings,
     skip / publish := true,
-    libraryDependencies ++= Dependencies.circe ++ Seq(
+    libraryDependencies ++= Seq(
       Dependencies.logback % Test,
-      Dependencies.scalaTest % Test,
       Dependencies.scalaMeter % Test
     )
   )
@@ -80,56 +81,19 @@ lazy val commonSettings = Seq(
     Dependencies.izumiReflect,
     Dependencies.scalaMock % Test,
     Dependencies.scalaTest % Test,
-    compilerPlugin(Dependencies.betterMonadicFor),
-    compilerPlugin(Dependencies.kindProjector),
   ),
+  addCompilerPlugin(Dependencies.betterMonadicFor),
+  addCompilerPlugin(Dependencies.kindProjector),
   scalacOptions ++= Seq(
     "-deprecation",
-    "-encoding",
-    "utf-8",
-    "-explaintypes",
     "-feature",
-    "-language:existentials",
-    "-language:experimental.macros",
-    "-language:higherKinds",
-    "-language:implicitConversions",
     "-unchecked",
-    "-Xcheckinit",
-    "-Xfatal-warnings",
-    "-Xfuture",
-    "-Xlint:adapted-args",
-    "-Xlint:by-name-right-associative",
-    "-Xlint:constant",
-    "-Xlint:delayedinit-select",
-    "-Xlint:doc-detached",
-    "-Xlint:inaccessible",
-    "-Xlint:infer-any",
-    "-Xlint:missing-interpolator",
-    "-Xlint:nullary-override",
-    "-Xlint:nullary-unit",
-    "-Xlint:option-implicit",
-    "-Xlint:package-object-classes",
-    "-Xlint:poly-implicit-overload",
-    "-Xlint:private-shadow",
-    "-Xlint:stars-align",
-    "-Xlint:type-parameter-shadow",
-    "-Xlint:unsound-match",
-    "-Yno-adapted-args",
-    "-Ypartial-unification",
+//    "-Xfatal-warnings",
+    "-Xlint",
     "-Ywarn-dead-code",
-    "-Ywarn-extra-implicit",
-    "-Ywarn-inaccessible",
-    "-Ywarn-infer-any",
-    "-Ywarn-nullary-override",
-    "-Ywarn-nullary-unit",
     "-Ywarn-numeric-widen",
-    "-Ywarn-unused:implicits",
-    "-Ywarn-unused:imports",
-    "-Ywarn-unused:locals",
-    "-Ywarn-unused:params",
-    "-Ywarn-unused:patvars",
-    "-Ywarn-unused:privates",
     "-Ywarn-value-discard",
+    "-Wunused"
   ),
   javacOptions ++= Seq(
     "-source", "1.9",

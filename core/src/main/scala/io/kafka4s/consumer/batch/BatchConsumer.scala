@@ -1,8 +1,12 @@
 package io.kafka4s.consumer.batch
 
-import cats.data.{Kleisli, NonEmptyList, OptionT}
-import cats.{ApplicativeError, Monad}
-import io.kafka4s.consumer.{ConsumerRecord, TopicNotFound}
+import cats.ApplicativeError
+import cats.Monad
+import cats.data.Kleisli
+import cats.data.NonEmptyList
+import cats.data.OptionT
+import io.kafka4s.consumer.ConsumerRecord
+import io.kafka4s.consumer.TopicNotFound
 
 import scala.util.control.NonFatal
 

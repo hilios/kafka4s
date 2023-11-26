@@ -1,12 +1,16 @@
 package io.kafka4s.middlewares.dlq
 
-import java.io.{PrintWriter, StringWriter}
-
+import cats.Monad
+import cats.MonadError
+import cats.Semigroup
 import cats.implicits._
-import cats.{Monad, MonadError, Semigroup}
-import io.kafka4s.common.{Header, Record}
+import io.kafka4s.common.Header
+import io.kafka4s.common.Record
 import io.kafka4s.producer.ProducerRecord
 import io.kafka4s.serdes.implicits._
+
+import java.io.PrintWriter
+import java.io.StringWriter
 
 trait DeadLetter[F[_]] {
   def build(record: Record[F], throwable: Throwable): F[Record[F]]

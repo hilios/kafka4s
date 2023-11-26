@@ -1,13 +1,18 @@
 package io.kafka4s.producer
 
+import cats.ApplicativeError
+import cats.Monad
+import cats.Show
 import cats.implicits._
-import cats.{ApplicativeError, Monad, Show}
-import io.kafka4s.common.{Header, Headers, Record, ToKafka}
+import io.kafka4s.common.Header
+import io.kafka4s.common.Headers
+import io.kafka4s.common.Record
+import io.kafka4s.common.ToKafka
 import io.kafka4s.serdes.Serializer
 import org.apache.kafka.common.header.internals.RecordHeaders
 
+import scala.jdk.CollectionConverters._
 import scala.util.hashing.MurmurHash3
-import scala.collection.JavaConverters._
 
 final case class ProducerRecord[F[_]](topic: String,
                                       keyBytes: Array[Byte],
@@ -109,7 +114,7 @@ object ProducerRecord {
                                 null,
                                 record.keyBytes,
                                 record.valueBytes,
-                                headers.toArray.toIterable.asJava)
+                                headers.toArray.toSeq.asJava)
     }
   }
 }

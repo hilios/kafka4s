@@ -1,13 +1,15 @@
 package io.kafka4s.common
 
-import java.util.Base64
-
+import cats.ApplicativeError
+import cats.Eq
+import cats.Show
 import cats.implicits._
-import cats.{ApplicativeError, Eq, Show}
-import io.kafka4s.serdes.{Deserializer, Serializer}
+import io.kafka4s.serdes.Deserializer
+import io.kafka4s.serdes.Serializer
 import org.apache.kafka.common.header.internals.RecordHeader
 import org.apache.kafka.common.header.{Header => ApacheKafkaHeader}
 
+import java.util.Base64
 import scala.util.hashing.MurmurHash3
 
 final case class Header[F[_]](key: String, value: Array[Byte]) {

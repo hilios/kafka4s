@@ -114,7 +114,7 @@ object BatchKafkaConsumer {
                                                             T: Timer[F],
                                                             CS: ContextShift[F]): Resource[F, BatchKafkaConsumer[F]] =
     for {
-      config <- Resource.liftF(F.fromEither {
+      config <- Resource.liftK(F.fromEither {
         if (builder.properties.isEmpty) KafkaConsumerConfiguration.load
         else KafkaConsumerConfiguration.loadFrom(builder.properties)
       })

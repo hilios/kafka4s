@@ -1,10 +1,15 @@
 package io.kafka4s.serdes.circe
 
+import _root_.io.circe.Decoder
+import _root_.io.circe.Encoder
+import _root_.io.circe.Printer
 import _root_.io.circe.parser.{decode => jsonDecoder}
-import _root_.io.circe.{Decoder, Encoder, Printer}
 import cats.implicits._
+import io.kafka4s.serdes.Deserializer
+import io.kafka4s.serdes.Result
+import io.kafka4s.serdes.Serde
+import io.kafka4s.serdes.Serializer
 import io.kafka4s.serdes.implicits.stringSerde
-import io.kafka4s.serdes.{Deserializer, Result, Serde, Serializer}
 
 trait CirceImplicitSerde {
   private val defaultPrinter = Printer.noSpaces.copy(dropNullValues = true)

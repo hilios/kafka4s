@@ -1,12 +1,16 @@
 package io.kafka4s.common
 
+import cats.Eval
+import cats.Foldable
+import cats.Monoid
+import cats.Show
 import cats.implicits._
-import cats.{Eval, Foldable, Monoid, Show}
 import org.apache.kafka.common.header.internals.RecordHeaders
-import org.apache.kafka.common.header.{Header => ApacheKafkaHeader, Headers => ApacheKafkaHeaders}
+import org.apache.kafka.common.header.{Header => ApacheKafkaHeader}
+import org.apache.kafka.common.header.{Headers => ApacheKafkaHeaders}
 
-import scala.collection.JavaConverters._
 import scala.collection.mutable.ListBuffer
+import scala.jdk.CollectionConverters._
 
 final class Headers[F[_]] private (private val headers: List[Header[F]]) extends AnyVal {
 

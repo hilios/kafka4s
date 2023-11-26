@@ -4,7 +4,7 @@ import java.time.{Duration => JDuration}
 import java.util.Properties
 import java.util.concurrent.{Future => JFuture}
 
-import cats.effect.{Concurrent, Timer}
+import cats.effect.Concurrent
 import cats.implicits._
 import io.kafka4s.effect.log.Logger
 import io.kafka4s.effect.log.slf4j.Slf4jLogger
@@ -12,7 +12,7 @@ import io.kafka4s.effect.utils.Await
 import org.apache.kafka.clients.admin.{AdminClient, NewTopic}
 import org.apache.kafka.common.KafkaFuture
 
-import scala.collection.JavaConverters._
+import scala.jdk.CollectionConverters._
 import scala.concurrent.duration._
 
 class AdminEffect[F[_]] private (admin: AdminClient, logger: Logger[F], timeout: FiniteDuration = 30.seconds)(

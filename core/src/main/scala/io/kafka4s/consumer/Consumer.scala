@@ -1,9 +1,13 @@
 package io.kafka4s.consumer
 
-import cats.data.{Kleisli, OptionT}
+import cats.ApplicativeError
+import cats.Monad
+import cats.Show
+import cats.data.Kleisli
+import cats.data.OptionT
 import cats.kernel.Monoid
-import cats.{ApplicativeError, Monad, Show}
-import io.kafka4s.consumer.Return.{Ack, Err}
+import io.kafka4s.consumer.Return.Ack
+import io.kafka4s.consumer.Return.Err
 
 import scala.util.control.NonFatal
 
@@ -31,7 +35,7 @@ object Consumer {
   implicit def show[F[_]](implicit S: Show[ConsumerRecord[F]]): Show[Return[F]] =
     (`return`: Return[F]) => S.show(`return`.record)
 
-  implicit def monoid[F[_]: Monad] = new Monoid[Consumer[F]] {
+  implicit def monoid[F[_]: Monad]: Monoid[Consumer[F]] = new Monoid[Consumer[F]] {
 
     override def empty: Consumer[F] = Consumer.empty[F]
 

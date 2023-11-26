@@ -1,6 +1,8 @@
 package io.kafka4s.consumer
 
-import cats.data.{Kleisli, NonEmptyList, OptionT}
+import cats.data.Kleisli
+import cats.data.NonEmptyList
+import cats.data.OptionT
 
 package object batch extends BatchConsumerImplicitsOps {
   type BatchConsumer[F[_]]       = Kleisli[OptionT[F, *], NonEmptyList[ConsumerRecord[F]], Unit]

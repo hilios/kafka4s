@@ -16,7 +16,7 @@ object test {
         S.serialize(value).fold(throw _, identity)
     }
 
-    implicit val applicativeError = new MonadError[Id, Throwable] {
+    implicit val applicativeError: MonadError[Id, Throwable] = new MonadError[Id, Throwable] {
 
       def flatMap[A, B](fa: Id[A])(f: A => Id[B]): Id[B] = Monad[Id].flatMap(fa)(f(_))
 

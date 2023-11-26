@@ -1,7 +1,7 @@
 package io.kafka4s.serdes
 
-import cats.implicits._
-import cats.{Monad, SemigroupK}
+import cats.Monad
+import cats.SemigroupK
 
 trait Deserializer[A] {
   def deserialize(value: Array[Byte]): Result[A]
@@ -19,7 +19,7 @@ object Deserializer {
       def deserialize(in: Array[Byte]): Result[A] = f(in)
     }
 
-  implicit val deserializerInstances = new Monad[Deserializer] with SemigroupK[Deserializer] {
+  implicit val deserializerInstances: Monad[Deserializer] with SemigroupK[Deserializer] = new Monad[Deserializer] with SemigroupK[Deserializer] {
     def pure[A](a: A): Deserializer[A] = Deserializer.from(Function.const(Right(a)))
 
     def flatMap[A, B](fa: Deserializer[A])(f: A => Deserializer[B]): Deserializer[B] = new Deserializer[B] {

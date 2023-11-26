@@ -1,8 +1,8 @@
 package io.kafka4s.producer
 
-import java.time.Instant
-
 import cats.Show
+
+import java.time.Instant
 
 sealed trait Return[F[_]] {
   def record: ProducerRecord[F]

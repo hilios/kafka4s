@@ -3,6 +3,7 @@ package io.kafka4s.io.effect
 import scala.concurrent.duration._
 import scala.concurrent.{ExecutionContext, TimeoutException}
 
+
 trait IntegrationSpec extends AnyFlatSpec with Matchers {
   implicit val contextShift: ContextShift[IO] = IO.contextShift(ExecutionContext.global)
   implicit val timer: Timer[IO]               = IO.timer(ExecutionContext.global)

@@ -1,9 +1,12 @@
 package io.kafka4s.middlewares.dlq
 
 import cats.MonadError
-import cats.data.{Kleisli, OptionT}
+import cats.data.Kleisli
+import cats.data.OptionT
 import cats.implicits._
-import io.kafka4s.{BatchConsumer, Consumer, Producer}
+import io.kafka4s.BatchConsumer
+import io.kafka4s.Consumer
+import io.kafka4s.Producer
 
 import scala.util.control.NonFatal
 

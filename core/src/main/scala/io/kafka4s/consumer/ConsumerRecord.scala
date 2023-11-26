@@ -1,12 +1,14 @@
 package io.kafka4s.consumer
 
-import java.time.Instant
-
+import cats.ApplicativeError
+import cats.Monad
+import cats.Show
 import cats.implicits._
-import cats.{ApplicativeError, Monad, Show}
-import io.kafka4s.common.{Headers, Record}
+import io.kafka4s.common.Headers
+import io.kafka4s.common.Record
 import io.kafka4s.serdes.Serializer
 
+import java.time.Instant
 import scala.util.hashing.MurmurHash3
 
 final case class ConsumerRecord[F[_]](topic: String,
