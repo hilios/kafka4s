@@ -1,11 +1,11 @@
 package io.kafka4s.effect.consumer.config
 
-import java.util.Properties
-
 import cats.syntax.either._
 import io.kafka4s.effect.properties
 import io.kafka4s.effect.properties.implicits._
 import org.apache.kafka.clients.consumer.ConsumerConfig
+
+import java.util.Properties
 
 case class KafkaConsumerConfiguration private (bootstrapServers: Seq[String],
                                                groupId: String,
@@ -28,5 +28,5 @@ object KafkaConsumerConfiguration {
         Either.catchNonFatal(value.map(AutoOffsetReset(_)).getOrElse(AutoOffsetReset.Latest))
       }
 
-    } yield KafkaConsumerConfiguration(bootstrapServers.split(raw",").map(_.trim), groupId, autoOffsetReset, properties)
+    } yield KafkaConsumerConfiguration(bootstrapServers.split(",").map(_.trim), groupId, autoOffsetReset, properties)
 }

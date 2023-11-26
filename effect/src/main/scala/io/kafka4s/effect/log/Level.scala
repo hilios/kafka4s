@@ -15,13 +15,13 @@ sealed trait Level { self =>
 }
 
 object Level {
-  final case object Off extends Level
-  final case object Trace extends Level
-  final case object Debug extends Level
-  final case object Info extends Level
-  final case object Warn extends Level
-  final case object Error extends Level
-  final case object All extends Level
+  case object Off extends Level
+  case object Trace extends Level
+  case object Debug extends Level
+  case object Info extends Level
+  case object Warn extends Level
+  case object Error extends Level
+  case object All extends Level
 
   implicit val logLevelOrdering: Ordering[Level] = (x: Level, y: Level) =>
     (x, y) match {

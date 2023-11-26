@@ -1,14 +1,20 @@
 package io.kafka4s.effect.producer
 
-import java.util.Properties
-
-import cats.effect.{Concurrent, ExitCase}
+import cats.effect.Concurrent
+import cats.effect.ExitCase
 import cats.implicits._
-import io.kafka4s.producer.{DefaultProducer, DefaultProducerRecord}
+import io.kafka4s.producer.DefaultProducer
+import io.kafka4s.producer.DefaultProducerRecord
 import org.apache.kafka.clients.consumer.OffsetAndMetadata
-import org.apache.kafka.clients.producer.{Callback, RecordMetadata, KafkaProducer => ApacheKafkaProducer}
-import org.apache.kafka.common.{Metric, MetricName, PartitionInfo, TopicPartition}
+import org.apache.kafka.clients.producer.Callback
+import org.apache.kafka.clients.producer.RecordMetadata
+import org.apache.kafka.clients.producer.{KafkaProducer => ApacheKafkaProducer}
+import org.apache.kafka.common.Metric
+import org.apache.kafka.common.MetricName
+import org.apache.kafka.common.PartitionInfo
+import org.apache.kafka.common.TopicPartition
 
+import java.util.Properties
 import scala.collection.JavaConverters._
 
 class ProducerEffect[F[_]](producer: DefaultProducer)(implicit F: Concurrent[F]) {
@@ -48,7 +54,7 @@ class ProducerEffect[F[_]](producer: DefaultProducer)(implicit F: Concurrent[F])
     } yield metadata
 
   def flush: F[Unit]                                      = F.delay(producer.flush())
-  def partitionsFor(topic: String): F[Seq[PartitionInfo]] = F.delay(producer.partitionsFor(topic).asScala)
+  def partitionsFor(topic: String): F[Seq[PartitionInfo]] = F.delay(producer.partitionsFor(topic).asScala.toSeq)
   def metrics: F[Map[MetricName, Metric]]                 = F.delay(producer.metrics().asScala.toMap)
   def close: F[Unit]                                      = F.delay(producer.close())
 }

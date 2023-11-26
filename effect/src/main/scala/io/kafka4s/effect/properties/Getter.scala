@@ -1,9 +1,9 @@
 package io.kafka4s.effect.properties
 
-import java.util.Properties
-
 import cats.Monad
 import cats.implicits._
+
+import java.util.Properties
 
 private[kafka4s] trait Getter[A] {
   def get(properties: Properties, key: String): Getter.Result[A]

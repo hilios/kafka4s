@@ -1,7 +1,10 @@
-package fs2.consumer.batch
+package io.kafka4s.fs2.consumer.batch
 
 import cats.data.NonEmptyList
-import cats.effect.{Concurrent, ConcurrentEffect, ContextShift, Timer}
+import cats.effect.Concurrent
+import cats.effect.ConcurrentEffect
+import cats.effect.ContextShift
+import cats.effect.Timer
 import cats.implicits._
 import fs2.Stream
 import fs2.concurrent.SignallingRef
@@ -12,8 +15,10 @@ import io.kafka4s.effect.consumer._
 import io.kafka4s.effect.consumer.config._
 import io.kafka4s.effect.log._
 import io.kafka4s.effect.log.slf4j.Slf4jLogger
-import org.apache.kafka.clients.consumer.{ConsumerConfig, OffsetAndMetadata}
-import org.apache.kafka.common.{KafkaException, TopicPartition}
+import org.apache.kafka.clients.consumer.ConsumerConfig
+import org.apache.kafka.clients.consumer.OffsetAndMetadata
+import org.apache.kafka.common.KafkaException
+import org.apache.kafka.common.TopicPartition
 
 import scala.concurrent.duration._
 import scala.util.Random

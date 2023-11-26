@@ -49,9 +49,9 @@ object ConsumerRecord {
 
     def apply[T](topic: String, value: T)(implicit F: ApplicativeError[F, Throwable],
                                           S: Serializer[T]): F[ConsumerRecord[F]] =
-      F.fromEither(for {
-        v <- S.serialize(value)
-      } yield {
+      for {
+        v <- F.fromEither(S.serialize(value))
+      } yield
         ConsumerRecord[F](
           topic,
           keyBytes   = Array.emptyByteArray,
@@ -60,16 +60,15 @@ object ConsumerRecord {
           offset     = 0L,
           partition  = 0,
           timestamp  = Instant.now()
-        )
-      })
+      )
 
     def apply[K, V](topic: String, key: K, value: V)(implicit F: Monad[F] with ApplicativeError[F, Throwable],
                                                      K: Serializer[K],
                                                      V: Serializer[V]): F[ConsumerRecord[F]] =
-      F.fromEither(for {
-        k <- K.serialize(key)
-        v <- V.serialize(value)
-      } yield {
+      for {
+        k <- F.fromEither(K.serialize(key))
+        v <- F.fromEither(V.serialize(value))
+      } yield
         ConsumerRecord[F](
           topic,
           keyBytes   = k,
@@ -79,16 +78,15 @@ object ConsumerRecord {
           partition  = 0,
           timestamp  = Instant.now()
         )
-      })
 
     def apply[K, V](topic: String, key: K, value: V, partition: Int)(
       implicit F: Monad[F] with ApplicativeError[F, Throwable],
       K: Serializer[K],
       V: Serializer[V]): F[ConsumerRecord[F]] =
-      F.fromEither(for {
-        k <- K.serialize(key)
-        v <- V.serialize(value)
-      } yield {
+      for {
+        k <- F.fromEither(K.serialize(key))
+        v <- F.fromEither(V.serialize(value))
+      } yield
         ConsumerRecord[F](
           topic,
           keyBytes   = k,
@@ -97,18 +95,17 @@ object ConsumerRecord {
           offset     = 0L,
           partition,
           timestamp = Instant.now()
-        )
-      })
+      )
 
     def apply[K, V](topic: String, key: K, value: V, partition: Int, offset: Long)(
       implicit F: Monad[F] with ApplicativeError[F, Throwable],
       K: Serializer[K],
       V: Serializer[V]
     ): F[ConsumerRecord[F]] =
-      F.fromEither(for {
-        k <- K.serialize(key)
-        v <- V.serialize(value)
-      } yield {
+      for {
+        k <- F.fromEither(K.serialize(key))
+        v <- F.fromEither(V.serialize(value))
+      } yield
         ConsumerRecord[F](
           topic,
           keyBytes   = k,
@@ -118,7 +115,6 @@ object ConsumerRecord {
           partition,
           timestamp = Instant.now()
         )
-      })
   }
 
   implicit def show[F[_]]: Show[ConsumerRecord[F]] =

@@ -1,11 +1,11 @@
 package io.kafka4s.effect.producer.config
 
-import java.util.Properties
-
 import cats.syntax.either._
 import io.kafka4s.effect.properties
 import io.kafka4s.effect.properties.implicits._
 import org.apache.kafka.clients.producer.ProducerConfig
+
+import java.util.Properties
 
 case class KafkaProducerConfiguration private (bootstrapServers: Seq[String],
                                                compression: CompressionType,
@@ -34,7 +34,7 @@ object KafkaProducerConfiguration {
         value.getOrElse(false)
       }
     } yield
-      new KafkaProducerConfiguration(bootstrapServers.split(raw",").map(_.trim),
+      new KafkaProducerConfiguration(bootstrapServers.split(",").map(_.trim),
                                      compressionType,
                                      acks,
                                      enableIdempotent,

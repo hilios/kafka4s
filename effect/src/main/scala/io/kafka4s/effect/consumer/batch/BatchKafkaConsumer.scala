@@ -1,21 +1,30 @@
 package io.kafka4s.effect.consumer.batch
 
-import java.util.concurrent.Executors
-
 import cats.data.NonEmptyList
+import cats.effect.Blocker
+import cats.effect.CancelToken
+import cats.effect.Concurrent
+import cats.effect.ConcurrentEffect
+import cats.effect.ContextShift
+import cats.effect.Resource
+import cats.effect.Timer
 import cats.effect.concurrent.Ref
-import cats.effect.{Blocker, CancelToken, Concurrent, ConcurrentEffect, ContextShift, Resource, Timer}
 import cats.implicits._
 import io.kafka4s.BatchRecordConsumer
+import io.kafka4s.consumer.ConsumerRecord
+import io.kafka4s.consumer.DefaultConsumerRecord
+import io.kafka4s.consumer.Subscription
 import io.kafka4s.consumer.batch.BatchReturn
-import io.kafka4s.consumer.{ConsumerRecord, DefaultConsumerRecord, Subscription}
 import io.kafka4s.effect.consumer.ConsumerEffect
 import io.kafka4s.effect.consumer.config.KafkaConsumerConfiguration
 import io.kafka4s.effect.log.Logger
 import io.kafka4s.effect.log.slf4j.Slf4jLogger
-import org.apache.kafka.clients.consumer.{ConsumerConfig, OffsetAndMetadata}
-import org.apache.kafka.common.{KafkaException, TopicPartition}
+import org.apache.kafka.clients.consumer.ConsumerConfig
+import org.apache.kafka.clients.consumer.OffsetAndMetadata
+import org.apache.kafka.common.KafkaException
+import org.apache.kafka.common.TopicPartition
 
+import java.util.concurrent.Executors
 import scala.concurrent.duration.FiniteDuration
 
 class BatchKafkaConsumer[F[_]](config: KafkaConsumerConfiguration,
@@ -114,7 +123,7 @@ object BatchKafkaConsumer {
                                                             T: Timer[F],
                                                             CS: ContextShift[F]): Resource[F, BatchKafkaConsumer[F]] =
     for {
-      config <- Resource.liftK(F.fromEither {
+      config <- Resource.liftF(F.fromEither {
         if (builder.properties.isEmpty) KafkaConsumerConfiguration.load
         else KafkaConsumerConfiguration.loadFrom(builder.properties)
       })

@@ -1,6 +1,8 @@
 package io.kafka4s.effect.log
 
-import cats.{Applicative, Apply, Monoid}
+import cats.Applicative
+import cats.Apply
+import cats.Monoid
 
 trait Logger[F[_]] { self =>
   def log(message: Message): F[Unit]

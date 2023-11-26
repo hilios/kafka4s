@@ -1,13 +1,16 @@
 package io.kafka4s.effect.consumer.batch
 
-import java.util.Properties
-
 import cats.ApplicativeError
-import cats.effect.{ConcurrentEffect, ContextShift, Resource, Sync, Timer}
+import cats.effect.ConcurrentEffect
+import cats.effect.ContextShift
+import cats.effect.Resource
+import cats.effect.Sync
+import cats.effect.Timer
 import io.kafka4s.consumer._
 import io.kafka4s.consumer.batch._
 import io.kafka4s.effect.properties.implicits._
 
+import java.util.Properties
 import scala.concurrent.duration._
 import scala.util.matching.Regex
 

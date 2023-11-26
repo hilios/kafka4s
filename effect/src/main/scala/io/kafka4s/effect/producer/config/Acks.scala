@@ -11,9 +11,9 @@ sealed abstract class Acks private (val value: String) { self =>
 }
 
 object Acks {
-  final object Zero extends Acks(value = "0")
-  final object One extends Acks(value  = "1")
-  final object All extends Acks(value  = "all")
+  object Zero extends Acks(value = "0")
+  object One extends Acks(value  = "1")
+  object All extends Acks(value  = "all")
 
   def apply(value: String): Acks = value match {
     case Zero(a) => a

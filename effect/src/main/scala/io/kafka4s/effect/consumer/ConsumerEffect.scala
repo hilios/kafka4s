@@ -1,26 +1,24 @@
 package io.kafka4s.effect.consumer
 
-import java.time.{Duration => JDuration}
-import java.util.Properties
-
 import cats.Applicative
 import cats.data.Kleisli
 import cats.effect._
 import cats.implicits._
 import io.kafka4s.consumer._
 import io.kafka4s.effect.log.Logger
-import io.kafka4s.effect.properties.implicits._
 import io.kafka4s.effect.log.slf4j.Slf4jLogger
+import io.kafka4s.effect.properties.implicits._
 import io.kafka4s.effect.utils.ThreadSafeBlocker
-import org.apache.kafka.clients.consumer.{
-  ConsumerConfig,
-  ConsumerRebalanceListener,
-  OffsetAndMetadata,
-  OffsetAndTimestamp,
-  KafkaConsumer => ApacheKafkaConsumer
-}
-import org.apache.kafka.common.{Metric, MetricName, PartitionInfo, TopicPartition}
+import org.apache.kafka.clients.consumer.ConsumerConfig
+import org.apache.kafka.clients.consumer.ConsumerRebalanceListener
+import org.apache.kafka.clients.consumer.OffsetAndMetadata
+import org.apache.kafka.clients.consumer.OffsetAndTimestamp
+import org.apache.kafka.clients.consumer.{KafkaConsumer => ApacheKafkaConsumer}
+import org.apache.kafka.common.PartitionInfo
+import org.apache.kafka.common.TopicPartition
 
+import java.time.{Duration => JDuration}
+import java.util.Properties
 import scala.collection.JavaConverters._
 import scala.concurrent.duration._
 import scala.util.matching.Regex
@@ -61,7 +59,7 @@ class ConsumerEffect[F[_]] private (consumer: DefaultConsumer,
   def assignment: F[Set[TopicPartition]] = threadSafe.delay(consumer.assignment().asScala.toSet)
 
   def listTopics: F[Map[String, Seq[PartitionInfo]]] =
-    threadSafe.delay(consumer.listTopics().asScala.toMap.mapValues(_.asScala.toSeq))
+    threadSafe.delay(consumer.listTopics().asScala.toMap.view.mapValues(_.asScala.toSeq).toMap)
 
   def position(partition: TopicPartition): F[Long]               = threadSafe.delay(consumer.position(partition))
   def committed(partition: TopicPartition): F[OffsetAndMetadata] = threadSafe.delay(consumer.committed(partition))
@@ -76,14 +74,14 @@ class ConsumerEffect[F[_]] private (consumer: DefaultConsumer,
     threadSafe.delay(
       Map(
         consumer
-          .offsetsForTimes(timestampsToSearch.mapValues(long2Long).asJava)
+          .offsetsForTimes(timestampsToSearch.view.mapValues(long2Long).toMap.asJava)
           .asScala
           .toSeq: _*))
 
   def partitionsFor(topic: String): F[Seq[PartitionInfo]] =
     threadSafe.delay(consumer.partitionsFor(topic).asScala.toVector)
 
-  def seek(partition: TopicPartition, offset: Long): F[Unit] = blocker.delay(consumer.seek(partition, offset))
+  def seek(partition: TopicPartition, offset: Long): F[Unit] = threadSafe.delay(consumer.seek(partition, offset))
 
   def seekToBeginning(partitions: Seq[TopicPartition]): F[Unit] =
     threadSafe.delay(consumer.seekToBeginning(partitions.asJavaCollection))

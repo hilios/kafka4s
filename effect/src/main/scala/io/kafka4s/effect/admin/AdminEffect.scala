@@ -1,19 +1,20 @@
 package io.kafka4s.effect.admin
 
-import java.time.{Duration => JDuration}
-import java.util.Properties
-import java.util.concurrent.{Future => JFuture}
-
 import cats.effect.Concurrent
+import cats.effect.Timer
 import cats.implicits._
 import io.kafka4s.effect.log.Logger
 import io.kafka4s.effect.log.slf4j.Slf4jLogger
 import io.kafka4s.effect.utils.Await
-import org.apache.kafka.clients.admin.{AdminClient, NewTopic}
+import org.apache.kafka.clients.admin.AdminClient
+import org.apache.kafka.clients.admin.NewTopic
 import org.apache.kafka.common.KafkaFuture
 
-import scala.jdk.CollectionConverters._
+import java.time.{Duration => JDuration}
+import java.util.Properties
+import java.util.concurrent.{Future => JFuture}
 import scala.concurrent.duration._
+import scala.jdk.CollectionConverters._
 
 class AdminEffect[F[_]] private (admin: AdminClient, logger: Logger[F], timeout: FiniteDuration = 30.seconds)(
   implicit F: Concurrent[F],

@@ -1,10 +1,10 @@
 package io.kafka4s.effect.utils
 
-import java.util.concurrent.TimeUnit
-
-import cats.effect.{Concurrent, Timer}
+import cats.effect.Concurrent
+import cats.effect.Timer
 import cats.implicits._
 
+import java.util.concurrent.TimeUnit
 import scala.concurrent.TimeoutException
 import scala.concurrent.duration._
 

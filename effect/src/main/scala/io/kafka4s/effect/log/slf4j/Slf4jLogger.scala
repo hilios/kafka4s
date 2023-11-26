@@ -2,8 +2,12 @@ package io.kafka4s.effect.log.slf4j
 
 import cats.effect.Sync
 import cats.implicits._
-import io.kafka4s.effect.log.{Level, Logger, Message}
-import izumi.reflect.{Tag, TagK, TagT}
+import io.kafka4s.effect.log.Level
+import io.kafka4s.effect.log.Logger
+import io.kafka4s.effect.log.Message
+import izumi.reflect.Tag
+import izumi.reflect.TagK
+import izumi.reflect.TagT
 import org.slf4j
 
 class Slf4jLogger[F[_]] private (logger: slf4j.Logger)(implicit F: Sync[F]) extends Logger[F] {

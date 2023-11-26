@@ -1,9 +1,10 @@
 package io.kafka4s.effect.producer
 
-import java.util.Properties
-
-import cats.effect.{Concurrent, Resource}
+import cats.effect.Concurrent
+import cats.effect.Resource
 import io.kafka4s.effect.properties.implicits._
+
+import java.util.Properties
 
 case class KafkaProducerBuilder[F[_]](properties: Properties) {
 

@@ -13,11 +13,11 @@ sealed abstract class CompressionType private (val value: String) { self =>
 
 object CompressionType {
 
-  final object Gzip extends CompressionType(value   = "gzip")
-  final object Snappy extends CompressionType(value = "snappy")
-  final object Lz4 extends CompressionType(value    = "lz4")
-  final object Zstd extends CompressionType(value   = "zstd")
-  final object None extends CompressionType(value   = "none")
+  object Gzip extends CompressionType(value   = "gzip")
+  object Snappy extends CompressionType(value = "snappy")
+  object Lz4 extends CompressionType(value    = "lz4")
+  object Zstd extends CompressionType(value   = "zstd")
+  object None extends CompressionType(value   = "none")
 
   def apply(value: String): CompressionType = value match {
     case Gzip(c)   => c

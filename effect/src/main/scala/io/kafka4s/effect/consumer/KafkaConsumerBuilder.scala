@@ -1,7 +1,5 @@
 package io.kafka4s.effect.consumer
 
-import java.util.Properties
-
 import cats.ApplicativeError
 import cats.effect._
 import io.kafka4s.RecordConsumer
@@ -9,6 +7,7 @@ import io.kafka4s.consumer._
 import io.kafka4s.effect.properties.implicits._
 import io.kafka4s.implicits._
 
+import java.util.Properties
 import scala.concurrent.duration._
 import scala.util.matching.Regex
 
@@ -53,13 +52,14 @@ case class KafkaConsumerBuilder[F[_]](blocker: Blocker,
 
 object KafkaConsumerBuilder {
 
-  def apply[F[_]: Sync](blocker: Blocker): KafkaConsumerBuilder[F] =
-    KafkaConsumerBuilder[F](
-      blocker,
-      pollTimeout    = 100.millis,
-      properties     = new Properties(),
-      semantic       = Semantic.AtLeastOnce,
-      subscription   = Subscription.Empty,
-      recordConsumer = Consumer.empty[F].orNotFound
-    )
+//  @tailrec
+//  def apply[F[_]: Sync](blocker: Blocker)(implicit F: ConcurrentEffect[F]): KafkaConsumerBuilder[F] =
+//    KafkaConsumerBuilder[F](
+//      blocker,
+//      pollTimeout    = 100.millis,
+//      properties     = new Properties(),
+//      semantic       = Semantic.AtLeastOnce,
+//      subscription   = Subscription.Empty,
+//      recordConsumer = Consumer.empty[F].orNotFound
+//    )
 }

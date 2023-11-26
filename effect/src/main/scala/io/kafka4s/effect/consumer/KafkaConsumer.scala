@@ -5,12 +5,17 @@ import cats.effect._
 import cats.effect.concurrent.Ref
 import cats.implicits._
 import io.kafka4s.RecordConsumer
-import io.kafka4s.consumer.{ConsumerRecord, DefaultConsumerRecord, Return, Subscription}
+import io.kafka4s.consumer.ConsumerRecord
+import io.kafka4s.consumer.DefaultConsumerRecord
+import io.kafka4s.consumer.Return
+import io.kafka4s.consumer.Subscription
 import io.kafka4s.effect.consumer.config.KafkaConsumerConfiguration
 import io.kafka4s.effect.log.Logger
 import io.kafka4s.effect.log.slf4j.Slf4jLogger
-import org.apache.kafka.clients.consumer.{ConsumerConfig, OffsetAndMetadata}
-import org.apache.kafka.common.{KafkaException, TopicPartition}
+import org.apache.kafka.clients.consumer.ConsumerConfig
+import org.apache.kafka.clients.consumer.OffsetAndMetadata
+import org.apache.kafka.common.KafkaException
+import org.apache.kafka.common.TopicPartition
 
 import scala.concurrent.duration.FiniteDuration
 
@@ -106,7 +111,7 @@ object KafkaConsumer {
                                                        T: Timer[F],
                                                        CS: ContextShift[F]): Resource[F, KafkaConsumer[F]] =
     for {
-      config <- Resource.liftK(F.fromEither {
+      config <- Resource.liftF(F.fromEither {
         if (builder.properties.isEmpty) KafkaConsumerConfiguration.load
         else KafkaConsumerConfiguration.loadFrom(builder.properties)
       })

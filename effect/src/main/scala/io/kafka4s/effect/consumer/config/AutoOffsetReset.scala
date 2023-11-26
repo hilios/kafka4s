@@ -14,9 +14,9 @@ sealed abstract class AutoOffsetReset private (val value: String) { self =>
 }
 
 object AutoOffsetReset {
-  final object Earliest extends AutoOffsetReset(value = "earliest")
-  final object Latest extends AutoOffsetReset(value   = "latest")
-  final object None extends AutoOffsetReset(value     = "none")
+  object Earliest extends AutoOffsetReset(value = "earliest")
+  object Latest extends AutoOffsetReset(value   = "latest")
+  object None extends AutoOffsetReset(value     = "none")
 
   def apply(value: String): AutoOffsetReset = value match {
     case Earliest(a) => a

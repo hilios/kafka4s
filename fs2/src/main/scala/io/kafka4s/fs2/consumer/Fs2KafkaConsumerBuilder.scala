@@ -1,26 +1,30 @@
-package fs2.consumer.batch
-
-import java.util.Properties
+package io.kafka4s.fs2.consumer
 
 import cats.ApplicativeError
-import cats.effect.{Blocker, ConcurrentEffect, ContextShift, Resource, Sync, Timer}
+import cats.effect.Blocker
+import cats.effect.ConcurrentEffect
+import cats.effect.ContextShift
+import cats.effect.Resource
+import cats.effect.Sync
+import cats.effect.Timer
 import fs2.Stream
+import io.kafka4s.consumer.Consumer
+import io.kafka4s.consumer.RecordConsumer
 import io.kafka4s.consumer.Subscription
-import io.kafka4s.consumer.batch._
 import io.kafka4s.effect.properties.implicits._
 
+import java.util.Properties
 import scala.concurrent.duration._
 import scala.util.matching.Regex
 
-case class Fs2BatchKafkaConsumerBuilder[F[_]](blocker: Blocker,
-                                              maxBatchSize: Int,
-                                              maxConcurrent: Int,
-                                              pollTimeout: FiniteDuration,
-                                              properties: Properties,
-                                              subscription: Subscription,
-                                              recordConsumer: BatchRecordConsumer[F]) {
+case class Fs2KafkaConsumerBuilder[F[_]](blocker: Blocker,
+                                         maxConcurrent: Int,
+                                         pollTimeout: FiniteDuration,
+                                         properties: Properties,
+                                         subscription: Subscription,
+                                         recordConsumer: RecordConsumer[F]) {
 
-  type Self = Fs2BatchKafkaConsumerBuilder[F]
+  type Self = Fs2KafkaConsumerBuilder[F]
 
   def withTopics(topics: String*): Self =
     copy(subscription = Subscription.Topics(topics.toSet))
@@ -40,38 +44,34 @@ case class Fs2BatchKafkaConsumerBuilder[F[_]](blocker: Blocker,
   def withPollTimeout(duration: FiniteDuration): Self =
     copy(pollTimeout = duration)
 
-  def withConsumer(consumer: BatchConsumer[F])(implicit F: ApplicativeError[F, Throwable]): Self =
+  def withConsumer(consumer: Consumer[F])(implicit F: ApplicativeError[F, Throwable]): Self =
     copy(recordConsumer = consumer.orNotFound)
 
-  def withConsumer(consumer: BatchRecordConsumer[F]): Self =
+  def withConsumer(consumer: RecordConsumer[F]): Self =
     copy(recordConsumer = consumer)
-
-  def withMaxBatchSize(maxBatchSize: Int) =
-    copy(maxBatchSize = maxBatchSize)
 
   def withMaxConcurrency(maxConcurrent: Int) =
     copy(maxConcurrent = maxConcurrent)
 
   def stream(implicit F: ConcurrentEffect[F], T: Timer[F], CS: ContextShift[F]): Stream[F, Unit] =
-    Fs2BatchKafkaConsumer[F](builder = this)
+    Fs2KafkaConsumer[F](builder = this)
 
   def resource(implicit F: ConcurrentEffect[F], T: Timer[F], CS: ContextShift[F]): Resource[F, Unit] =
-    stream.compile.resource.drain
+    stream.compile.resource.lastOrError
 
   def serve(implicit F: ConcurrentEffect[F], T: Timer[F], CS: ContextShift[F]): F[Unit] =
     stream.compile.drain
 }
 
-object Fs2BatchKafkaConsumerBuilder {
+object Fs2KafkaConsumerBuilder {
 
-  def apply[F[_]: Sync](blocker: Blocker): Fs2BatchKafkaConsumerBuilder[F] =
-    Fs2BatchKafkaConsumerBuilder[F](
+  def apply[F[_]: Sync](blocker: Blocker): Fs2KafkaConsumerBuilder[F] =
+    Fs2KafkaConsumerBuilder[F](
       blocker,
-      maxBatchSize   = Int.MaxValue,
       maxConcurrent  = 1,
       pollTimeout    = 100.millis,
       properties     = new Properties(),
       subscription   = Subscription.Empty,
-      recordConsumer = BatchConsumer.empty[F].orNotFound
+      recordConsumer = Consumer.empty[F].orNotFound
     )
 }

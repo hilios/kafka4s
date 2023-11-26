@@ -1,10 +1,12 @@
 package io.kafka4s.effect.admin
 
-import java.util.Properties
-
-import cats.effect.{Concurrent, Resource, Timer}
+import cats.effect.Concurrent
+import cats.effect.Resource
+import cats.effect.Timer
 import io.kafka4s.effect.admin.config._
 import io.kafka4s.effect.properties.implicits._
+
+import java.util.Properties
 
 case class KafkaAdminBuilder[F[_]] private (properties: Properties) {
 
@@ -18,7 +20,7 @@ case class KafkaAdminBuilder[F[_]] private (properties: Properties) {
 
   def resource(implicit F: Concurrent[F], T: Timer[F]): Resource[F, AdminEffect[F]] =
     for {
-      config <- Resource.liftK(F.fromEither {
+      config <- Resource.liftF(F.fromEither {
         if (properties.isEmpty) KafkaAdminConfiguration.load else KafkaAdminConfiguration.loadFrom(properties)
       })
       admin <- Resource.make(AdminEffect[F](config.properties))(_.close())

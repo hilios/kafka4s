@@ -1,16 +1,21 @@
 package io.kafka4s.effect.producer
 
-import java.time.Instant
-
 import cats.data.Kleisli
-import cats.effect.{Concurrent, Resource, Sync}
+import cats.effect.Concurrent
+import cats.effect.Resource
+import cats.effect.Sync
 import cats.implicits._
 import io.kafka4s.common.ToKafka
 import io.kafka4s.effect.log.Logger
 import io.kafka4s.effect.log.slf4j.Slf4jLogger
 import io.kafka4s.effect.producer.config.KafkaProducerConfiguration
-import io.kafka4s.producer.{DefaultProducerRecord, Producer, ProducerRecord, Return}
+import io.kafka4s.producer.DefaultProducerRecord
+import io.kafka4s.producer.Producer
+import io.kafka4s.producer.ProducerRecord
+import io.kafka4s.producer.Return
 import org.apache.kafka.clients.producer.ProducerConfig
+
+import java.time.Instant
 
 class KafkaProducer[F[_]](config: KafkaProducerConfiguration, producer: ProducerEffect[F], logger: Logger[F])(
   implicit F: Sync[F])
@@ -54,7 +59,7 @@ object KafkaProducer {
 
   def resource[F[_]](builder: KafkaProducerBuilder[F])(implicit F: Concurrent[F]): Resource[F, KafkaProducer[F]] =
     for {
-      config <- Resource.liftK(F.fromEither {
+      config <- Resource.liftF(F.fromEither {
         if (builder.properties.isEmpty) KafkaProducerConfiguration.load
         else KafkaProducerConfiguration.loadFrom(builder.properties)
       })

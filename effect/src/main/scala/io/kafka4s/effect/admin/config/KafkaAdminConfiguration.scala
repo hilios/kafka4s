@@ -1,10 +1,10 @@
 package io.kafka4s.effect.admin.config
 
-import java.util.Properties
-
 import io.kafka4s.effect.properties
 import io.kafka4s.effect.properties.implicits._
 import org.apache.kafka.clients.consumer.ConsumerConfig
+
+import java.util.Properties
 
 case class KafkaAdminConfiguration(bootstrapServers: Seq[String], properties: Properties)
 
@@ -19,5 +19,5 @@ object KafkaAdminConfiguration {
   def loadFrom(properties: Properties): Either[Throwable, KafkaAdminConfiguration] =
     for {
       bootstrapServers <- properties.getter[String](ConsumerConfig.BOOTSTRAP_SERVERS_CONFIG)
-    } yield KafkaAdminConfiguration(bootstrapServers.split(raw",").map(_.trim), properties)
+    } yield KafkaAdminConfiguration(bootstrapServers.split(",").map(_.trim), properties)
 }

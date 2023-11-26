@@ -1,7 +1,10 @@
 package io.kafka4s.effect.utils
 
+import cats.effect.Blocker
+import cats.effect.Concurrent
+import cats.effect.ContextShift
+import cats.effect.Sync
 import cats.effect.concurrent.Semaphore
-import cats.effect.{Blocker, Concurrent, ContextShift, Sync}
 import cats.implicits._
 
 import scala.concurrent.blocking
