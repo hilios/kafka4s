@@ -23,10 +23,7 @@ object Dependencies {
   val betterMonadicFor = "com.olegpy"        %% "better-monadic-for" % "0.3.1"
   val kindProjector    = "org.typelevel"     %% "kind-projector"     % "0.13.2" cross CrossVersion.full
 
-  val testContainers = Seq(
-    "com.dimafeng" %% "testcontainers-scala-scalatest" % "0.41.0" % Test,
-    "com.dimafeng" %% "testcontainers-scala-kafka"     % "0.41.0" % Test,
-  )
+  val testContainers = "com.dimafeng" %% "testcontainers-scala-scalatest" % "0.41.0"
 
   val circe = Seq(
     "io.circe" %% "circe-core"    % "0.14.6" % Provided,

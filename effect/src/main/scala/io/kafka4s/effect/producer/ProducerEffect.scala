@@ -15,7 +15,7 @@ import org.apache.kafka.common.PartitionInfo
 import org.apache.kafka.common.TopicPartition
 
 import java.util.Properties
-import scala.collection.JavaConverters._
+import scala.jdk.CollectionConverters._
 
 class ProducerEffect[F[_]](producer: DefaultProducer)(implicit F: Concurrent[F]) {
   def initTransactions: F[Unit]  = F.delay(producer.initTransactions())

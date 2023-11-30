@@ -3,15 +3,15 @@ package io.kafka4s.effect
 import cats.effect.IO
 import cats.effect.Resource
 import cats.effect.concurrent.Ref
-import io.kafka4s.IntegrationSpec
-import io.kafka4s.producer._
-import io.kafka4s.consumer._
-import io.kafka4s.dsl._
-import io.kafka4s.implicits._
 import cats.implicits._
+import io.kafka4s.IntegrationSpec
+import io.kafka4s.batch.dsl._
+import io.kafka4s.consumer._
 import io.kafka4s.consumer.batch.BatchConsumer
 import io.kafka4s.effect.consumer.batch.BatchKafkaConsumerBuilder
 import io.kafka4s.effect.producer.KafkaProducerBuilder
+import io.kafka4s.implicits._
+import io.kafka4s.producer._
 
 import scala.concurrent.duration._
 
@@ -28,7 +28,7 @@ class BatchKafkaConsumerSpec extends IntegrationSpec {
       _ <- BatchKafkaConsumerBuilder[IO]
         .withTopics(topics.toSet)
         .withConsumer(BatchConsumer.of[IO] {
-//          case Topic("boom") => IO.raiseError(new Exception("Somebody set up us the bomb"))
+          case Topic("boom") => IO.raiseError(new Exception("Somebody set up us the bomb"))
           case batch         => records.update(_ ++ batch.toList)
         })
         .resource

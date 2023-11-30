@@ -1,24 +1,40 @@
 package io.kafka4s
 
-import cats.effect.{Blocker, Clock, ContextShift, IO, Resource, Timer}
-import com.dimafeng.testcontainers.KafkaContainer
+import cats.effect.Blocker
+import cats.effect.Clock
+import cats.effect.ContextShift
+import cats.effect.IO
+import cats.effect.Resource
+import cats.effect.Timer
+import cats.implicits._
+import com.dimafeng.testcontainers.ContainerDef
+import com.dimafeng.testcontainers.DockerComposeContainer
+import com.dimafeng.testcontainers.ExposedService
 import com.dimafeng.testcontainers.scalatest.TestContainerForAll
 import io.kafka4s.effect.admin.KafkaAdminBuilder
+import org.apache.kafka.clients.admin.NewTopic
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should.Matchers
-import org.apache.kafka.clients.admin.NewTopic
+import org.testcontainers.containers.wait.strategy.Wait
 
-import cats.implicits._
+import java.io.File
+import scala.concurrent.ExecutionContext
+import scala.concurrent.TimeoutException
 import scala.concurrent.duration._
-import scala.concurrent.{ExecutionContext, TimeoutException}
 
 
 trait IntegrationSpec extends AnyFlatSpec with Matchers with TestContainerForAll {
   implicit val contextShift: ContextShift[IO] = IO.contextShift(ExecutionContext.global)
   implicit val timer: Timer[IO]               = IO.timer(ExecutionContext.global)
-  val blocker                                 = Blocker.liftExecutionContext(ExecutionContext.global)
+  val blocker: Blocker                        = Blocker.liftExecutionContext(ExecutionContext.global)
 
-  override val containerDef = KafkaContainer.Def()
+  override val containerDef: ContainerDef = DockerComposeContainer.Def(
+    new File("docker-compose.yml"),
+    tailChildContainers = true,
+    exposedServices = Seq(
+      ExposedService("kafka", 9092, Wait.forListeningPort())
+    )
+  )
 
   def waitFor[A](duration: FiniteDuration)(ioa: => IO[A]): IO[A] =
     IO.race(Timer[IO].sleep(duration), ioa).flatMap {

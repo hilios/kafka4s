@@ -50,7 +50,7 @@ case class Fs2KafkaConsumerBuilder[F[_]](blocker: Blocker,
   def withConsumer(consumer: RecordConsumer[F]): Self =
     copy(recordConsumer = consumer)
 
-  def withMaxConcurrency(maxConcurrent: Int) =
+  def withMaxConcurrency(maxConcurrent: Int): Self =
     copy(maxConcurrent = maxConcurrent)
 
   def stream(implicit F: ConcurrentEffect[F], T: Timer[F], CS: ContextShift[F]): Stream[F, Unit] =

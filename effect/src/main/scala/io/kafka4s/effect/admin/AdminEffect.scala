@@ -22,14 +22,14 @@ class AdminEffect[F[_]] private (admin: AdminClient, logger: Logger[F], timeout:
 
   def createTopics(newTopics: Seq[NewTopic]): F[Unit] =
     logger.debug(s"Creating topics: ${newTopics.map(_.name()).mkString(", ")}") >>
-      liftF { _ =>
-        F.delay(admin.createTopics(newTopics.asJavaCollection).all())
+      liftF { a =>
+        F.delay(a.createTopics(newTopics.asJavaCollection).all())
       }.void
 
   def deleteTopics(topics: Seq[String]): F[Unit] =
     logger.debug(s"Deleting topics: ${topics.mkString(", ")}") >>
-      liftF { _ =>
-        F.delay(admin.deleteTopics(topics.asJavaCollection).all())
+      liftF { a =>
+        F.delay(a.deleteTopics(topics.asJavaCollection).all())
       }.void
 
   def liftF[A](fn: AdminClient => F[KafkaFuture[A]]): F[A] =

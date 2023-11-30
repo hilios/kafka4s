@@ -1,37 +1,36 @@
 package io.kafka4s.effect
 
 import cats.effect.IO
-import cats.effect.concurrent.Deferred
 import cats.effect.Resource
+import cats.effect.concurrent.Deferred
 import cats.effect.concurrent.Ref
-import io.kafka4s.producer._
-import io.kafka4s.consumer._
-import io.kafka4s.dsl._
-import io.kafka4s.implicits._
-import io.kafka4s.effect.producer.KafkaProducerBuilder
-import io.kafka4s.effect.consumer.KafkaConsumerBuilder
 import cats.implicits._
 import io.kafka4s.IntegrationSpec
+import io.kafka4s.consumer._
+import io.kafka4s.dsl._
+import io.kafka4s.effect.consumer.KafkaConsumerBuilder
+import io.kafka4s.effect.producer.KafkaProducerBuilder
+import io.kafka4s.implicits._
+import io.kafka4s.producer._
 
 import scala.concurrent.duration._
 
 class KafkaConsumerSpec extends IntegrationSpec {
-  val foo  = "foo"
+  val foo = "foo"
   val boom = "boom"
 
   def withSingleRecord[A](topics: String*)(test: (Producer[IO], Deferred[IO, ConsumerRecord[IO]]) => IO[A]): A = {
     for {
-      _           <- executionTime
-      _           <- prepareTopics(topics)
+      _ <- executionTime
+      _ <- prepareTopics(topics)
       firstRecord <- Resource.eval(Deferred[IO, ConsumerRecord[IO]])
       _ <- KafkaConsumerBuilder[IO](blocker)
         .withTopics(topics: _*)
         .withConsumer(Consumer.of[IO] {
           case Topic("boom") => IO.raiseError(new Exception("Somebody set up us the bomb"))
-          case msg           => firstRecord.complete(msg)
+          case msg => firstRecord.complete(msg)
         })
         .resource
-
       producer <- KafkaProducerBuilder[IO].resource
 
     } yield (producer, firstRecord)

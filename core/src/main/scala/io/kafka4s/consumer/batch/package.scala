@@ -7,6 +7,4 @@ import cats.data.OptionT
 package object batch extends BatchConsumerImplicitsOps {
   type BatchConsumer[F[_]]       = Kleisli[OptionT[F, *], NonEmptyList[ConsumerRecord[F]], Unit]
   type BatchRecordConsumer[F[_]] = Kleisli[F, NonEmptyList[ConsumerRecord[F]], batch.BatchReturn[F]]
-
-  object dsl extends BatchConsumerDsl
 }

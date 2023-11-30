@@ -3,7 +3,7 @@ package io.kafka4s.consumer.batch
 import cats.Id
 import cats.data.NonEmptyList
 import io.kafka4s.consumer.ConsumerRecord
-import io.kafka4s.consumer.batch.dsl._
+import io.kafka4s.batch.dsl._
 import io.kafka4s.implicits._
 import io.kafka4s.test.UnitSpec
 

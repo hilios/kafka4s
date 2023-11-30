@@ -9,6 +9,10 @@ package object kafka4s {
 
   object dsl extends consumer.ConsumerDsl
 
+  object batch {
+    object dsl extends consumer.batch.BatchConsumerDsl
+  }
+
   object implicits
       extends serdes.SerdeImplicits
       with consumer.ConsumerImplicitOps

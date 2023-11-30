@@ -1,7 +1,9 @@
 package io.kafka4s.fs2
 
-import cats.effect.concurrent.{Deferred, Ref}
-import cats.effect.{IO, Resource}
+import cats.effect.IO
+import cats.effect.Resource
+import cats.effect.concurrent.Deferred
+import cats.effect.concurrent.Ref
 import cats.implicits._
 import io.kafka4s.IntegrationSpec
 import io.kafka4s.consumer._
@@ -21,7 +23,7 @@ class Fs2KafkaConsumerSpec extends IntegrationSpec {
     for {
       _           <- executionTime
       _           <- prepareTopics(topics)
-      firstRecord <- Resource.liftF(Deferred[IO, ConsumerRecord[IO]])
+      firstRecord <- Resource.eval(Deferred[IO, ConsumerRecord[IO]])
       consumer = Fs2KafkaConsumerBuilder[IO](blocker)
         .withTopics(topics: _*)
         .withConsumer(Consumer.of[IO] {
@@ -37,7 +39,7 @@ class Fs2KafkaConsumerSpec extends IntegrationSpec {
     for {
       _       <- executionTime
       _       <- prepareTopics(topics)
-      records <- Resource.liftF(Ref[IO].of(List.empty[ConsumerRecord[IO]]))
+      records <- Resource.eval(Ref[IO].of(List.empty[ConsumerRecord[IO]]))
       consumer = Fs2KafkaConsumerBuilder[IO](blocker)
         .withTopics(topics: _*)
         .withConsumer(Consumer.of[IO] {
@@ -52,7 +54,7 @@ class Fs2KafkaConsumerSpec extends IntegrationSpec {
   it should "should produce and consume messages" in withSingleRecord(topics = foo) { (producer, maybeMessage) =>
     for {
       _ <- producer.send(foo, key = 1, value = "bar")
-      record <- waitFor(30.seconds) {
+      record <- waitFor(1.minute) {
         maybeMessage.get
       }
       topic = record.topic

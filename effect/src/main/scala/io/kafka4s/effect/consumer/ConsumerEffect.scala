@@ -19,7 +19,7 @@ import org.apache.kafka.common.TopicPartition
 
 import java.time.{Duration => JDuration}
 import java.util.Properties
-import scala.collection.JavaConverters._
+import scala.jdk.CollectionConverters._
 import scala.concurrent.duration._
 import scala.util.matching.Regex
 
@@ -122,6 +122,7 @@ object ConsumerEffect {
       groupId = properties.getter[String](ConsumerConfig.GROUP_ID_CONFIG).fold(_ => "undefined", identity)
     } yield new ConsumerEffect(consumer, threadSafe, logPartitionsCallback(logger, groupId))
 
-  def resource[F[_]](properties: Properties, blocker: Blocker)(implicit F: ConcurrentEffect[F], CS: ContextShift[F]) =
+  def resource[F[_]](properties: Properties, blocker: Blocker)
+                    (implicit F: ConcurrentEffect[F], CS: ContextShift[F]): Resource[F, ConsumerEffect[F]] =
     Resource.make(ConsumerEffect[F](properties, blocker))(c => c.wakeup >> c.close())
 }

@@ -4,7 +4,7 @@ import cats.implicits._
 import com.typesafe.config.ConfigFactory
 
 import java.util.Properties
-import scala.collection.JavaConverters._
+import scala.jdk.CollectionConverters._
 
 package object properties {
 

@@ -9,6 +9,7 @@ import io.kafka4s.consumer.ConsumerRecord
 import io.kafka4s.consumer.batch
 import io.kafka4s.consumer.{Return => ConsumerReturn}
 import io.kafka4s.dsl._
+import io.kafka4s.batch.dsl.{Topic => BatchTopic}
 import io.kafka4s.implicits._
 import io.kafka4s.producer.Producer
 import io.kafka4s.producer.ProducerRecord
@@ -37,7 +38,7 @@ class DeadLetterQueueSpec extends UnitSpec { self =>
   }
 
   val batchConsumer = batch.BatchConsumer.of[Test] {
-    case batch.dsl.Topic("boom") => Either.catchNonFatal(throw new Error("Boom!")).void
+    case BatchTopic("boom") => Either.catchNonFatal(throw new Error("Boom!")).void
     case _                       => Right(())
   }
 

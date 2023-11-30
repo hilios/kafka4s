@@ -5,7 +5,7 @@ import cats.data.NonEmptyList
 import cats.implicits._
 import io.kafka4s.consumer.ConsumerRecord
 import io.kafka4s.consumer.TopicNotFound
-import io.kafka4s.consumer.batch.dsl._
+import io.kafka4s.batch.dsl._
 import io.kafka4s.implicits._
 import io.kafka4s.test.UnitSpec
 
