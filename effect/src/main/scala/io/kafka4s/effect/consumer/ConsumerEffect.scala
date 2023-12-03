@@ -19,8 +19,8 @@ import org.apache.kafka.common.TopicPartition
 
 import java.time.{Duration => JDuration}
 import java.util.Properties
-import scala.jdk.CollectionConverters._
 import scala.concurrent.duration._
+import scala.jdk.CollectionConverters._
 import scala.util.matching.Regex
 
 class ConsumerEffect[F[_]] private (consumer: DefaultConsumer,
@@ -106,7 +106,7 @@ object ConsumerEffect {
 
   def noopCallback[F[_]: Applicative]: ConsumerCallback[F] = Kleisli(_ => Applicative[F].unit)
 
-  def logPartitionsCallback[F[_]: Sync](logger: Logger[F], groupId: String): ConsumerCallback[F] = Kleisli {
+  private def logPartitionsCallback[F[_]: Sync](logger: Logger[F], groupId: String): ConsumerCallback[F] = Kleisli {
     case ConsumerRebalance.PartitionsAssigned(p) =>
       logger.info(s"Partitions [${p.mkString(", ")}] assigned to the consumer group id [$groupId]")
     case ConsumerRebalance.PartitionsRevoked(p) =>

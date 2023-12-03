@@ -1,10 +1,10 @@
 package io.kafka4s.effect.producer.config
 
-import java.util.Properties
-
 import cats.effect.SyncIO
 import io.kafka4s.effect.test.UnitSpec
 import org.apache.kafka.clients.producer.ProducerConfig
+
+import java.util.Properties
 
 class KafkaProducerConfigurationSpec extends UnitSpec {
 

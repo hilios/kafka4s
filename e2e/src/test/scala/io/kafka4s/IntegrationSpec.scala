@@ -18,15 +18,17 @@ import org.scalatest.matchers.should.Matchers
 import org.testcontainers.containers.wait.strategy.Wait
 
 import java.io.File
+import java.util.concurrent.Executors
 import scala.concurrent.ExecutionContext
 import scala.concurrent.TimeoutException
 import scala.concurrent.duration._
 
 
 trait IntegrationSpec extends AnyFlatSpec with Matchers with TestContainerForAll {
+  private val blockingExecution = ExecutionContext.fromExecutorService(Executors.newCachedThreadPool())
   implicit val contextShift: ContextShift[IO] = IO.contextShift(ExecutionContext.global)
   implicit val timer: Timer[IO]               = IO.timer(ExecutionContext.global)
-  val blocker: Blocker                        = Blocker.liftExecutionContext(ExecutionContext.global)
+  val blocker: Blocker                        = Blocker.liftExecutionContext(blockingExecution)
 
   override val containerDef: ContainerDef = DockerComposeContainer.Def(
     new File("docker-compose.yml"),

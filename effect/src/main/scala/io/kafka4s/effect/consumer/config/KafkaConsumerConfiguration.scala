@@ -24,9 +24,8 @@ object KafkaConsumerConfiguration {
     for {
       bootstrapServers <- properties.getter[String](ConsumerConfig.BOOTSTRAP_SERVERS_CONFIG)
       groupId          <- properties.getter[String](ConsumerConfig.GROUP_ID_CONFIG)
-      autoOffsetReset <- properties.getter[Option[String]](ConsumerConfig.AUTO_OFFSET_RESET_CONFIG) flatMap { value =>
+      autoOffsetReset  <- properties.getter[Option[String]](ConsumerConfig.AUTO_OFFSET_RESET_CONFIG).flatMap { value =>
         Either.catchNonFatal(value.map(AutoOffsetReset(_)).getOrElse(AutoOffsetReset.Latest))
       }
-
     } yield KafkaConsumerConfiguration(bootstrapServers.split(",").map(_.trim), groupId, autoOffsetReset, properties)
 }

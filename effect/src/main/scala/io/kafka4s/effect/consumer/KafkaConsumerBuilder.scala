@@ -33,6 +33,9 @@ case class KafkaConsumerBuilder[F[_]](blocker: Blocker,
   def withProperties(properties: Map[String, String]): Self =
     copy(properties = properties.toProperties)
 
+  def withProperties(properties: (String, String)*): Self =
+    copy(properties = properties.toMap.toProperties)
+
   def withPattern(regex: Regex): Self =
     copy(subscription = Subscription.Pattern(regex))
 

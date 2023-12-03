@@ -1,10 +1,10 @@
 package io.kafka4s.effect.consumer.config
 
-import java.util.Properties
-
 import cats.effect.SyncIO
 import io.kafka4s.effect.test.UnitSpec
 import org.apache.kafka.clients.consumer.ConsumerConfig
+
+import java.util.Properties
 
 class KafkaConsumerConfigurationSpec extends UnitSpec {
   val props = new Properties()

@@ -3,16 +3,15 @@ package io.kafka4s.effect.utils
 import cats.effect.Blocker
 import cats.effect.Concurrent
 import cats.effect.ContextShift
+import cats.effect.Resource
 import cats.effect.Sync
 import cats.effect.concurrent.Semaphore
 import cats.implicits._
 
-import scala.concurrent.blocking
-
 class ThreadSafeBlocker[F[_]] private (blocker: Blocker, semaphore: Semaphore[F])(implicit F: Sync[F],
                                                                                   CS: ContextShift[F]) {
-
-  def delay[A](thunk: => A): F[A] = semaphore.withPermit(blocker.delay(blocking(thunk)))
+  def delay[A](thunk: => A): F[A] =
+    Resource.make(semaphore.acquire)(_ => semaphore.release).use(_ => blocker.delay(thunk))
 }
 
 object ThreadSafeBlocker {

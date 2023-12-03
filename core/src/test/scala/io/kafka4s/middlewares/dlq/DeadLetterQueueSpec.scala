@@ -3,13 +3,13 @@ package io.kafka4s.middlewares.dlq
 import cats.data.Kleisli
 import cats.data.NonEmptyList
 import cats.implicits._
+import io.kafka4s.batch.dsl.{Topic => BatchTopic}
 import io.kafka4s.common.Record
 import io.kafka4s.consumer.Consumer
 import io.kafka4s.consumer.ConsumerRecord
 import io.kafka4s.consumer.batch
 import io.kafka4s.consumer.{Return => ConsumerReturn}
 import io.kafka4s.dsl._
-import io.kafka4s.batch.dsl.{Topic => BatchTopic}
 import io.kafka4s.implicits._
 import io.kafka4s.producer.Producer
 import io.kafka4s.producer.ProducerRecord

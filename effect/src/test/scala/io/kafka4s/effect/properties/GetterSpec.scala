@@ -1,11 +1,10 @@
 package io.kafka4s.effect.properties
 
-import java.util.Properties
-
 import cats.implicits._
 import io.kafka4s.effect.properties.implicits._
 import io.kafka4s.effect.test.UnitSpec
 
+import java.util.Properties
 import scala.concurrent.duration._
 
 class GetterSpec extends UnitSpec {
