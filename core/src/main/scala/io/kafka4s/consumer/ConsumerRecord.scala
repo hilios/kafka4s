@@ -14,9 +14,9 @@ import scala.util.hashing.MurmurHash3
 final case class ConsumerRecord[F[_]](topic: String,
                                       keyBytes: Array[Byte],
                                       valueBytes: Array[Byte],
-                                      headers: Headers[F],
                                       offset: Long,
                                       partition: Int,
+                                      headers: Headers[F],
                                       timestamp: Instant)
     extends Record[F] {
 
@@ -91,9 +91,9 @@ object ConsumerRecord {
           topic,
           keyBytes   = k,
           valueBytes = v,
-          headers    = Headers.empty[F],
           offset     = 0L,
           partition,
+          headers    = Headers.empty[F],
           timestamp = Instant.now()
       )
 
@@ -110,9 +110,9 @@ object ConsumerRecord {
           topic,
           keyBytes   = k,
           valueBytes = v,
-          headers    = Headers.empty[F],
           offset,
           partition,
+          headers   = Headers.empty[F],
           timestamp = Instant.now()
         )
   }

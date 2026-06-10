@@ -22,7 +22,7 @@ final case class Header[F[_]](key: String, value: Array[Byte]) {
   override def toString: String = s"Header(${this.show})"
 
   override def equals(obj: Any): Boolean = {
-    obj.isInstanceOf[this.type] && obj.hashCode() == this.hashCode()
+    obj.hashCode() == this.hashCode()
   }
 
   override def hashCode(): Int =

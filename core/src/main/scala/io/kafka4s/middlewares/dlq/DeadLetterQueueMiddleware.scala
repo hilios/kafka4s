@@ -10,7 +10,7 @@ import io.kafka4s.Producer
 
 import scala.util.control.NonFatal
 
-class DeadLetterQueue[F[_]] private (producer: Producer[F], dlq: DeadLetter[F])(implicit F: MonadError[F, Throwable]) {
+class DeadLetterQueueMiddleware[F[_]] private(producer: Producer[F], dlq: DeadLetter[F])(implicit F: MonadError[F, Throwable]) {
 
   def forConsumer(consumer: Consumer[F]): Consumer[F] = Kleisli { record =>
     OptionT(F.recoverWith(consumer.apply(record).value) {
@@ -33,26 +33,26 @@ class DeadLetterQueue[F[_]] private (producer: Producer[F], dlq: DeadLetter[F])(
   }
 }
 
-object DeadLetterQueue {
+object DeadLetterQueueMiddleware {
 
   def apply[F[_]: MonadError[*[_], Throwable]](producer: Producer[F], topicSuffix: String = "-dlq")(
     consumer: Consumer[F]): Consumer[F] =
-    new DeadLetterQueue(producer, DeadLetter[F](topicSuffix))
+    new DeadLetterQueueMiddleware(producer, DeadLetter[F](topicSuffix))
       .forConsumer(consumer)
 
   def apply[F[_]: MonadError[*[_], Throwable]](producer: Producer[F], dlq: DeadLetter[F])(
     consumer: Consumer[F]): Consumer[F] =
-    new DeadLetterQueue[F](producer, dlq).forConsumer(consumer)
+    new DeadLetterQueueMiddleware[F](producer, dlq).forConsumer(consumer)
 
   object Batch {
 
     def apply[F[_]: MonadError[*[_], Throwable]](producer: Producer[F], topicSuffix: String = "-dlq")(
       consumer: BatchConsumer[F]): BatchConsumer[F] =
-      new DeadLetterQueue(producer, DeadLetter[F](topicSuffix))
+      new DeadLetterQueueMiddleware(producer, DeadLetter[F](topicSuffix))
         .forBatchConsumer(consumer)
 
     def apply[F[_]: MonadError[*[_], Throwable]](producer: Producer[F], dlq: DeadLetter[F])(
       consumer: BatchConsumer[F]): BatchConsumer[F] =
-      new DeadLetterQueue[F](producer, dlq).forBatchConsumer(consumer)
+      new DeadLetterQueueMiddleware[F](producer, dlq).forBatchConsumer(consumer)
   }
 }

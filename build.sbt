@@ -10,8 +10,8 @@ ThisBuild / semanticdbVersion := scalafixSemanticdb.revision
 Global / concurrentRestrictions := Seq(Tags.limitAll(1))
 
 lazy val kafka4s = project.in(file("."))
-  .enablePlugins(MicrositesPlugin)
-  .aggregate(core, effect, fs2, circe, e2e)
+  .aggregate(core) // , effect, fs2, circe, e2e
+//  .enablePlugins(MicrositesPlugin)
 //  .settings(Microsite.settings)
   .settings(
     // Root project
@@ -21,6 +21,7 @@ lazy val kafka4s = project.in(file("."))
   )
 
 lazy val core = project.in(file("core"))
+  .settings(moduleName := "kafka4s-core")
   .settings(
     commonSettings,
     libraryDependencies ++= Seq(
@@ -29,52 +30,73 @@ lazy val core = project.in(file("core"))
       Dependencies.catsRetry,
     )
   )
+//
+//lazy val effect = project.in(file("effect"))
+//  .dependsOn(core)
+//  .settings(moduleName := "kafka4s-effect", name := "Kafka4s effect")
+//  .settings(
+//    commonSettings,
+//    libraryDependencies ++= Seq(
+//      Dependencies.catsEffect % Provided,
+//      Dependencies.config,
+//      Dependencies.slf4j
+//    )
+//  )
+//
+//lazy val fs2 = project.in(file("fs2"))
+//  .dependsOn(core, effect)
+//  .settings(moduleName := "kafka4s-fs2", name := "Kafka4s FS2")
+//  .settings(
+//    commonSettings,
+//    libraryDependencies ++= Seq(
+//      Dependencies.fs2 % Provided,
+//
+//    )
+//  )
+//
+//lazy val circe = project.in(file("circe"))
+//  .dependsOn(core)
+//  .settings(moduleName := "kafka4s-circe", name := "Kafka4s circe")
+//  .settings(
+//    commonSettings,
+//    libraryDependencies ++= Seq(
+//      Dependencies.circe,
+//      Dependencies.scalaTest % Test,
+//    )
+//  )
+//
+//lazy val e2e = project.in(file("e2e"))
+//  .dependsOn(core, effect, fs2, otel)
+//  .settings(
+//    commonSettings,
+//    skip / publish := true,
+//    libraryDependencies ++= Seq(
+//      Dependencies.kafkaClients   % Test,
+//      Dependencies.catsEffect     % Test,
+//      Dependencies.fs2            % Test,
+//      Dependencies.logback        % Test,
+//      Dependencies.scalaMeter     % Test,
+//      Dependencies.scalaTest      % Test,
+//      Dependencies.testContainers % Test,
+//    )
+//  )
 
-lazy val effect = project.in(file("effect"))
-  .dependsOn(core)
-  .settings(
-    commonSettings,
-    libraryDependencies ++= Seq(
-      Dependencies.catsEffect % Provided,
-      Dependencies.config,
-      Dependencies.slf4j
-    )
-  )
-
-lazy val fs2 = project.in(file("fs2"))
-  .dependsOn(core, effect)
-  .settings(
-    commonSettings,
-    libraryDependencies ++= Seq(
-      Dependencies.fs2 % Provided,
-
-    )
-  )
-
-lazy val circe = project.in(file("circe"))
-  .dependsOn(core)
-  .settings(
-    commonSettings,
-    libraryDependencies ++= Dependencies.circe ++ Seq(
-      Dependencies.scalaTest % Test,
-    )
-  )
-
-lazy val e2e = project.in(file("e2e"))
-  .dependsOn(core, effect, fs2)
-  .settings(
-    commonSettings,
-    skip / publish := true,
-    libraryDependencies ++= Seq(
-      Dependencies.kafkaClients   % Test,
-      Dependencies.catsEffect     % Test,
-      Dependencies.fs2            % Test,
-      Dependencies.logback        % Test,
-      Dependencies.scalaMeter     % Test,
-      Dependencies.scalaTest      % Test,
-      Dependencies.testContainers % Test,
-    )
-  )
+//lazy val otel = project.in(file("otel"))
+//  .dependsOn(core)
+//  .settings(moduleName := "kafka4s-otel", name := "Kafka4s OTEL")
+//  .settings(
+//    commonSettings,
+//    libraryDependencies ++= Seq(
+//      Dependencies.otel,
+//      Dependencies.catsCore       % Provided,
+//      Dependencies.kafkaClients   % Test,
+//      Dependencies.catsEffect     % Provided,
+//      Dependencies.logback        % Test,
+//      Dependencies.scalaMeter     % Test,
+//      Dependencies.scalaTest      % Test,
+//      Dependencies.testContainers % Test,
+//    )
+//  )
 
 lazy val commonSettings = Seq(
   autoCompilerPlugins := true,

@@ -16,7 +16,7 @@ import io.kafka4s.producer.ProducerRecord
 import io.kafka4s.producer.{Return => ProducerReturn}
 import io.kafka4s.test.UnitSpec
 
-class DeadLetterQueueSpec extends UnitSpec { self =>
+class DeadLetterQueueMiddlewareSpec extends UnitSpec { self =>
 
   type Test[A] = Either[Throwable, A]
 
@@ -50,7 +50,7 @@ class DeadLetterQueueSpec extends UnitSpec { self =>
     """|recover from a error in the original consumer by producing a dead letter message
        |containing the exception message and stack trace in the headers
        |""".stripMargin in eitherTest {
-    val dlq = DeadLetterQueue(producer)(consumer).orNotFound
+    val dlq = DeadLetterQueueMiddleware(producer)(consumer).orNotFound
     send1
       .expects(where { record: ProducerRecord[Test] =>
         record.topic.endsWith("-dlq") &&
@@ -72,7 +72,7 @@ class DeadLetterQueueSpec extends UnitSpec { self =>
   }
 
   it should "allow the customization of the topic name by adding a dead letter name suffix" in eitherTest {
-    val dlq = DeadLetterQueue(producer, topicSuffix = "_dlq")(consumer).orNotFound
+    val dlq = DeadLetterQueueMiddleware(producer, topicSuffix = "_dlq")(consumer).orNotFound
     send1
       .expects(where { record: ProducerRecord[Test] =>
         record.topic.endsWith("_dlq") &&
@@ -96,7 +96,7 @@ class DeadLetterQueueSpec extends UnitSpec { self =>
         Right(ProducerRecord[Test](record).copy("all-dlq-msgs"))
     }
 
-    val dlq = DeadLetterQueue(producer, builder)(consumer).orNotFound
+    val dlq = DeadLetterQueueMiddleware(producer, builder)(consumer).orNotFound
     send1
       .expects(where { record: ProducerRecord[Test] =>
         record.topic == "all-dlq-msgs"
@@ -116,7 +116,7 @@ class DeadLetterQueueSpec extends UnitSpec { self =>
     """|recover from a error in the original batch consumer by producing dead letters messages
        |containing the exception message and stack trace in the headers for each message in the batch
        |""".stripMargin in eitherTest {
-    val dlq = DeadLetterQueue.Batch(producer)(batchConsumer).orNotFound
+    val dlq = DeadLetterQueueMiddleware.Batch(producer)(batchConsumer).orNotFound
     send1
       .expects(where { record: ProducerRecord[Test] =>
         record.topic.endsWith("-dlq") &&

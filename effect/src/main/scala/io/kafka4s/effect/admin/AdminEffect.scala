@@ -1,13 +1,11 @@
 package io.kafka4s.effect.admin
 
-import cats.effect.Concurrent
-import cats.effect.Timer
+import cats.effect.Async
 import cats.implicits._
 import io.kafka4s.effect.log.Logger
 import io.kafka4s.effect.log.slf4j.Slf4jLogger
 import io.kafka4s.effect.utils.Await
-import org.apache.kafka.clients.admin.AdminClient
-import org.apache.kafka.clients.admin.NewTopic
+import org.apache.kafka.clients.admin.{AdminClient, NewTopic}
 import org.apache.kafka.common.KafkaFuture
 
 import java.time.{Duration => JDuration}
@@ -17,7 +15,7 @@ import scala.concurrent.duration._
 import scala.jdk.CollectionConverters._
 
 class AdminEffect[F[_]] private (admin: AdminClient, logger: Logger[F], timeout: FiniteDuration = 30.seconds)(
-  implicit F: Concurrent[F],
+  implicit F: Async[F],
   A: Await[F, JFuture]) {
 
   def createTopics(newTopics: Seq[NewTopic]): F[Unit] =
@@ -44,7 +42,7 @@ class AdminEffect[F[_]] private (admin: AdminClient, logger: Logger[F], timeout:
 
 object AdminEffect {
 
-  def apply[F[_]](properties: Properties)(implicit F: Concurrent[F], T: Timer[F]): F[AdminEffect[F]] =
+  def apply[F[_]](properties: Properties)(implicit F: Async[F]): F[AdminEffect[F]] =
     for {
       logger <- Slf4jLogger[F].ofT[AdminEffect]
       admin  <- F.delay(AdminClient.create(properties))

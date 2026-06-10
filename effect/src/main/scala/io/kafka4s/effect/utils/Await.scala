@@ -1,7 +1,6 @@
 package io.kafka4s.effect.utils
 
 import cats.effect.Concurrent
-import cats.effect.Timer
 import cats.implicits._
 
 import java.util.concurrent.TimeUnit
@@ -14,8 +13,7 @@ trait Await[F[_], G[_]] {
 
 object Await {
 
-  implicit def javaFutureEventually[F[_]](implicit F: Concurrent[F],
-                                          T: Timer[F]): Await[F, java.util.concurrent.Future] =
+  implicit def javaFutureEventually[F[_]](implicit F: Concurrent[F]): Await[F, java.util.concurrent.Future] =
     new Await[F, java.util.concurrent.Future] {
 
       /**
